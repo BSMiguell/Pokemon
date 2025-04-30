@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokémon Hack Rooms - Os Melhores Hacks de Pokémon</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header id="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <img
+              src="https://www.freepnglogos.com/uploads/pokemon-symbol-logo-png-31.png"
+              alt="Pokémon Logo"
+            />
+            <h1>PokéHacks</h1>
+          </div>
+          <nav id="main-nav">
+            <ul>
+              <li><a href="#home" class="active">Home</a></li>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#hacks">Hack Rooms</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </nav>
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+      <div class="container">
+        <div class="hero-content">
+          <h2>Descubra os Melhores Hacks de Pokémon</h2>
+          <p>
+            Explore roms hackeadas com novos recursos, regiões e Pokémon.
+            Encontre a experiência perfeita para você!
+          </p>
+          <div class="hero-buttons">
+            <a href="#hacks" class="btn btn-primary pulse">
+              <i class="fas fa-gamepad"></i> Explorar Hacks
+            </a>
+            <a href="#features" class="btn btn-outline">
+              <i class="fas fa-star"></i> Recursos
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section features" id="features">
+      <div class="container">
+        <div class="section-title">
+          <h2>Recursos Incríveis</h2>
+          <p>
+            Descubra os recursos mais populares disponíveis nos hacks de Pokémon
+            modernos
+          </p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <h3>DexNav</h3>
+            <p>
+              Encontre Pokémon com habilidades especiais, IVs altos e muito mais
+              com este sistema avançado de busca.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Mega Evoluções</h3>
+            <p>
+              Desbloqueie formas poderosas de seus Pokémon favoritos com o
+              sistema de Mega Evolução.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chess-queen"></i>
+            </div>
+            <h3>Gigantamax</h3>
+            <p>
+              Experimente batalhas épicas com Pokémon que podem crescer a
+              tamanhos colossais.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h3>Novas Regiões</h3>
+            <p>
+              Explore regiões completamente novas com suas próprias histórias,
+              cidades e ginásios.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-dna"></i>
+            </div>
+            <h3>Pokémon Atuais</h3>
+            <p>
+              Jogue com Pokémon de todas as gerações, incluindo as mais
+              recentes.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <h3>Missões Secundárias</h3>
+            <p>
+              Desafios adicionais que expandem a jogabilidade e oferecem
+              recompensas exclusivas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hack Rooms Section -->
+    <section class="section hack-rooms" id="hacks">
+      <div class="container">
+        <div class="section-title">
+          <h2>Hack Rooms</h2>
+          <p>
+            Explore nossa coleção dos melhores hacks de Pokémon criados pela
+            comunidade
+          </p>
+        </div>
+
+        <div class="filter-controls">
+          <button class="filter-btn active" data-filter="all">Todos</button>
+          <button class="filter-btn" data-filter="gen2">Gen 2</button>
+          <button class="filter-btn" data-filter="gen3">Gen 3</button>
+          <button class="filter-btn" data-filter="gen4">Gen 4</button>
+          <button class="filter-btn" data-filter="complete">Completos</button>
+          <button class="filter-btn" data-filter="new-region">
+            Novas Regiões
+          </button>
+          <button class="filter-btn" data-filter="difficulty">
+            Dificuldade
+          </button>
+        </div>
+
+        <div class="rooms-grid" id="rooms-container">
+          <!-- Cards serão inseridos via JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about" style="background-color: white">
+      <div class="container">
+        <div class="section-title">
+          <h2>Sobre o PokéHacks</h2>
+          <p>Conheça mais sobre nossa plataforma e nossa missão</p>
+        </div>
+        <div style="max-width: 800px; margin: 0 auto; text-align: center">
+          <p>
+            O PokéHacks é a maior comunidade dedicada a hacks de Pokémon, criada
+            por fãs para fãs. Nosso objetivo é fornecer um diretório abrangente
+            dos melhores hacks disponíveis, com informações detalhadas sobre
+            cada um.
+          </p>
+          <p>
+            Trabalhamos diretamente com criadores de hacks para trazer conteúdo
+            atualizado e garantir que os jogadores encontrem experiências de
+            qualidade.
+          </p>
+          <img
+            src="https://images.unsplash.com/photo-1601584115227-04c1566a349b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+            alt="Sobre PokéHacks"
+            style="
+              width: 100%;
+              max-height: 400px;
+              object-fit: cover;
+              border-radius: var(--border-radius);
+              margin-top: 2rem;
+            "
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="modal" id="room-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Pokémon Radical Red</h2>
+          <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body">
+          <!-- Conteúdo será inserido via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact">
+      <div class="footer-wave"></div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-column">
+            <h3>Sobre Nós</h3>
+            <p>
+              PokéHacks é o maior diretório de hacks de Pokémon, dedicado a
+              conectar jogadores com as melhores experiências de ROM hackeadas.
+            </p>
+            <div class="social-links">
+              <a href="#" title="Discord"><i class="fab fa-discord"></i></a>
+              <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+              <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+              <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+            </div>
+          </div>
+          <div class="footer-column">
+            <h3>Links Rápidos</h3>
+            <ul>
+              <li>
+                <a href="#home"><i class="fas fa-chevron-right"></i> Home</a>
+              </li>
+              <li>
+                <a href="#hacks"
+                  ><i class="fas fa-chevron-right"></i> Hack Rooms</a
+                >
+              </li>
+              <li>
+                <a href="#features"
+                  ><i class="fas fa-chevron-right"></i> Recursos</a
+                >
+              </li>
+              <li>
+                <a href="#about"><i class="fas fa-chevron-right"></i> Sobre</a>
+              </li>
+              <li>
+                <a href="#contact"
+                  ><i class="fas fa-chevron-right"></i> Contato</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Recursos</h3>
+            <ul>
+              <li>
+                <a href="#"><i class="fas fa-chevron-right"></i> Tutoriais</a>
+              </li>
+              <li>
+                <a href="#"><i class="fas fa-chevron-right"></i> Ferramentas</a>
+              </li>
+              <li>
+                <a href="#"
+                  ><i class="fas fa-chevron-right"></i> Documentação</a
+                >
+              </li>
+              <li>
+                <a href="#"><i class="fas fa-chevron-right"></i> Fóruns</a>
+              </li>
+              <li>
+                <a href="#"><i class="fas fa-chevron-right"></i> Blog</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Contato</h3>
+            <ul>
+              <li>
+                <a href="mailto:contato@pokehacks.com"
+                  ><i class="fas fa-envelope"></i> contato@pokehacks.com</a
+                >
+              </li>
+              <li>
+                <a href="#"><i class="fas fa-globe"></i> www.pokehacks.com</a>
+              </li>
+            </ul>
+            <div class="newsletter-form">
+              <input type="email" placeholder="Seu e-mail" />
+              <button type="submit"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2023 PokéHacks. Todos os direitos reservados. Pokémon e seus
+            respectivos nomes são marcas registradas da Nintendo.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
