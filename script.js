@@ -9,9 +9,14 @@ const mobileMenuBtn = document.getElementById("mobile-menu-btn");
 const mainNav = document.getElementById("main-nav");
 const header = document.getElementById("header");
 const navLinks = document.querySelectorAll("nav a");
+const prevPageBtn = document.getElementById("prev-page");
+const nextPageBtn = document.getElementById("next-page");
+const pageIndicator = document.getElementById("page-indicator");
 
-// Variável para guardar a posição do scroll
+// Variáveis de estado
 let scrollPosition = 0;
+let currentPage = 1;
+const cardsPerPage = 9;
 
 // Dados dos hacks (simulando um banco de dados)
 const hacks = [
@@ -231,12 +236,103 @@ const hacks = [
     difficulty: "Médio",
     region: "Hoenn",
   },
+
+  {
+    id: 10,
+    title: "Pokémon Emerald Seaglass",
+    creator: "Ekat",
+    creatorUrl: "#",
+    image: "img/img-9.jpg",
+    description:
+      "Uma experiência única no mundo de Hoenn com gráficos renovados, mecânicas modernas e uma paleta de cores suaves inspirada no mar.",
+    generation: "gen3",
+    features: [
+      "Grágicos renovados",
+      "Paleta de cores suaves",
+      "Mecânicas modernas",
+      "Pokémon até Gen 8",
+      "DexNav",
+      "Sistema de dia/noite",
+    ],
+    officialSite: "#",
+    status: "Completo",
+    version: "1.3",
+    difficulty: "Médio",
+    region: "Hoenn",
+  },
 ];
 
-// Função para renderizar os cards
-function renderHacks(filter = "all") {
-  roomsContainer.innerHTML = "";
+// Função para criar elementos de card
+function createCardElement(hack) {
+  const card = document.createElement("div");
+  card.className = "room-card";
+  card.dataset.id = hack.id;
 
+  card.innerHTML = `
+      <div class="room-img">
+          <img src="${hack.image}" alt="${hack.title}" loading="lazy">
+          <span class="room-badge">${hack.status}</span>
+      </div>
+      <div class="room-content">
+          <h3 class="room-title">
+              <i class="fas fa-pokeball"></i> ${hack.title}
+          </h3>
+          <p class="room-creator">Por <a href="${hack.creatorUrl}">${
+    hack.creator
+  }</a> | Gen ${hack.generation.replace("gen", "")}</p>
+          <div class="room-features">
+              ${hack.features
+                .slice(0, 3)
+                .map((feat) => `<span class="feature-tag">${feat}</span>`)
+                .join("")}
+              ${
+                hack.features.length > 3
+                  ? `<span class="feature-tag">+${
+                      hack.features.length - 3
+                    }</span>`
+                  : ""
+              }
+          </div>
+          <p class="room-desc">${hack.description}</p>
+          <div class="room-actions">
+              <button class="btn btn-sm btn-view" data-id="${hack.id}">
+                  <i class="fas fa-info-circle"></i> Detalhes
+              </button>
+              <a href="${
+                hack.officialSite
+              }" class="btn btn-sm btn-primary" target="_blank">
+                  <i class="fas fa-external-link-alt"></i> Site Oficial
+              </a>
+          </div>
+      </div>
+  `;
+
+  return card;
+}
+
+// Configura os event listeners dos botões de detalhes
+function setupCardEventListeners() {
+  document.querySelectorAll(".btn-view").forEach((btn) => {
+    // Remove event listeners antigos para evitar duplicação
+    btn.removeEventListener("click", handleDetailsClick);
+    // Adiciona o novo listener
+    btn.addEventListener("click", handleDetailsClick);
+  });
+}
+
+// Função para lidar com o clique em Detalhes
+function handleDetailsClick(e) {
+  e.preventDefault();
+  const hackId = parseInt(this.getAttribute("data-id"));
+  openModal(hackId);
+}
+
+// Função principal para renderizar cards
+function renderHacks(filter = "all", page = 1) {
+  roomsContainer.innerHTML = "";
+  currentPage = page;
+
+  // Filtra os hacks
   const filteredHacks =
     filter === "all"
       ? hacks
@@ -251,75 +347,50 @@ function renderHacks(filter = "all") {
           return false;
         });
 
-  filteredHacks.forEach((hack) => {
-    const card = document.createElement("div");
-    card.className = "room-card";
-    card.dataset.id = hack.id;
+  // Paginação
+  const startIndex = (page - 1) * cardsPerPage;
+  const endIndex = startIndex + cardsPerPage;
+  const paginatedHacks = filteredHacks.slice(startIndex, endIndex);
 
-    card.innerHTML = `
-          <div class="room-img">
-              <img src="${hack.image}" alt="${hack.title}" loading="lazy">
-              <span class="room-badge">${hack.status}</span>
-          </div>
-          <div class="room-content">
-              <h3 class="room-title">
-                  <i class="fas fa-pokeball"></i> ${hack.title}
-              </h3>
-              <p class="room-creator">Por <a href="${hack.creatorUrl}">${
-      hack.creator
-    }</a> | Gen ${hack.generation.replace("gen", "")}</p>
-              <div class="room-features">
-                  ${hack.features
-                    .slice(0, 3)
-                    .map((feat) => `<span class="feature-tag">${feat}</span>`)
-                    .join("")}
-                  ${
-                    hack.features.length > 3
-                      ? `<span class="feature-tag">+${
-                          hack.features.length - 3
-                        }</span>`
-                      : ""
-                  }
-              </div>
-              <p class="room-desc">${hack.description}</p>
-              <div class="room-actions">
-                  <button class="btn btn-sm btn-view" data-id="${hack.id}">
-                      <i class="fas fa-info-circle"></i> Detalhes
-                  </button>
-                  <a href="${
-                    hack.officialSite
-                  }" class="btn btn-sm btn-primary" target="_blank">
-                      <i class="fas fa-external-link-alt"></i> Site Oficial
-                  </a>
-              </div>
-          </div>
-      `;
-
-    roomsContainer.appendChild(card);
+  // Renderiza os cards
+  paginatedHacks.forEach((hack) => {
+    roomsContainer.appendChild(createCardElement(hack));
   });
 
-  // Adiciona eventos aos botões "Ver Detalhes"
-  document.querySelectorAll(".btn-view").forEach((btn) => {
-    btn.addEventListener("click", () => openModal(parseInt(btn.dataset.id)));
-  });
+  // Configura os event listeners
+  setupCardEventListeners();
+
+  // Atualiza controles de paginação
+  updatePaginationControls(filteredHacks.length);
+
+  // Atualiza a URL
+  history.pushState(null, null, `?filter=${filter}&page=${page}`);
 }
 
-// Nova função para abrir o modal com controle de scroll
+// Atualiza os controles de paginação
+function updatePaginationControls(totalHacks) {
+  const totalPages = Math.ceil(totalHacks / cardsPerPage);
+
+  pageIndicator.textContent = `Página ${currentPage} de ${
+    totalPages > 0 ? totalPages : 1
+  }`;
+  prevPageBtn.disabled = currentPage === 1;
+  nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+}
+
+// Função para abrir o modal
 function openModal(hackId) {
-  // Guarda a posição atual do scroll
   scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
-  // Desabilita o scroll da página
+  // Bloqueia o scroll da página
   document.body.style.overflow = "hidden";
   document.body.style.position = "fixed";
   document.body.style.top = `-${scrollPosition}px`;
   document.body.style.width = "100%";
 
-  // Busca os dados do hack
   const hack = hacks.find((h) => h.id === hackId);
   if (!hack) return;
 
-  // Preenche o modal com os dados
   modalTitle.textContent = hack.title;
 
   modalBody.innerHTML = `
@@ -353,12 +424,6 @@ function openModal(hackId) {
                 hack.region
               }
           </div>
-          <div class="modal-info-item">
-              <i class="fas fa-gamepad"></i> <strong>Geração Base:</strong> ${hack.generation.replace(
-                "gen",
-                ""
-              )}
-          </div>
       </div>
       
       <div class="modal-section">
@@ -382,13 +447,6 @@ function openModal(hackId) {
           <p>${hack.description}</p>
       </div>
       
-      <div class="modal-section">
-          <h3>Site Oficial</h3>
-          <p><a href="${hack.officialSite}" target="_blank">${
-    hack.officialSite
-  }</a></p>
-      </div>
-      
       <div class="modal-actions">
           <a href="${
             hack.officialSite
@@ -401,19 +459,18 @@ function openModal(hackId) {
       </div>
   `;
 
-  // Mostra o modal
+  // Adiciona event listener para o botão de fechar
+  document
+    .getElementById("close-modal-btn")
+    .addEventListener("click", closeModal);
+
   modal.style.display = "flex";
   setTimeout(() => {
     modal.classList.add("show");
   }, 10);
-
-  // Adiciona evento ao botão de fechar dentro do modal
-  document
-    .getElementById("close-modal-btn")
-    .addEventListener("click", closeModal);
 }
 
-// Nova função para fechar o modal com restauração de scroll
+// Função para fechar o modal
 function closeModal() {
   modal.classList.remove("show");
   setTimeout(() => {
@@ -428,51 +485,41 @@ function closeModal() {
   }, 300);
 }
 
-// Função para rolar suavemente
-function smoothScroll(target) {
-  const element = document.querySelector(target);
-  if (element) {
-    window.scrollTo({
-      behavior: "smooth",
-      top: element.offsetTop - 100,
-    });
-  }
-}
-
-// Função para destacar link ativo no menu
-function setActiveLink() {
-  const scrollPosition = window.scrollY;
-
-  document.querySelectorAll("section").forEach((section) => {
-    const sectionTop = section.offsetTop - 150;
-    const sectionHeight = section.offsetHeight;
-    const sectionId = section.getAttribute("id");
-
-    if (
-      scrollPosition >= sectionTop &&
-      scrollPosition < sectionTop + sectionHeight
-    ) {
-      navLinks.forEach((link) => {
-        link.classList.remove("active");
-        if (link.getAttribute("href") === `#${sectionId}`) {
-          link.classList.add("active");
-        }
-      });
-    }
-  });
-}
-
-// Event Listeners
+// Inicialização
 document.addEventListener("DOMContentLoaded", () => {
-  renderHacks();
+  // Verifica parâmetros da URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const filter = urlParams.get("filter") || "all";
+  const page = parseInt(urlParams.get("page")) || 1;
+
+  // Ativa o filtro correspondente
+  document
+    .querySelector(`.filter-btn[data-filter="${filter}"]`)
+    ?.classList.add("active");
+
+  // Renderiza os hacks
+  renderHacks(filter, page);
 
   // Filtros
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       filterButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      renderHacks(btn.dataset.filter);
+      renderHacks(btn.dataset.filter, 1);
     });
+  });
+
+  // Paginação
+  prevPageBtn.addEventListener("click", () => {
+    const activeFilter =
+      document.querySelector(".filter-btn.active").dataset.filter;
+    renderHacks(activeFilter, currentPage - 1);
+  });
+
+  nextPageBtn.addEventListener("click", () => {
+    const activeFilter =
+      document.querySelector(".filter-btn.active").dataset.filter;
+    renderHacks(activeFilter, currentPage + 1);
   });
 
   // Modal
@@ -497,8 +544,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
       }
 
-      smoothScroll(target);
       history.pushState(null, null, target);
+      document.querySelector(target).scrollIntoView({ behavior: "smooth" });
     });
   });
 
@@ -509,8 +556,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       header.classList.remove("scrolled");
     }
-
-    setActiveLink();
   });
 
   // Fechar modal ao clicar fora
@@ -520,6 +565,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Inicializa links ativos
-  setActiveLink();
+  // Manipula o botão de voltar/avançar do navegador
+  window.addEventListener("popstate", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filter = urlParams.get("filter") || "all";
+    const page = parseInt(urlParams.get("page")) || 1;
+
+    document.querySelectorAll(".filter-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.filter === filter);
+    });
+
+    renderHacks(filter, page);
+  });
 });
