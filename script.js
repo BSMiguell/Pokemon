@@ -1,3 +1,18 @@
+// Elementos do DOM
+const roomsContainer = document.getElementById("rooms-container");
+const filterButtons = document.querySelectorAll(".filter-btn");
+const modal = document.getElementById("room-modal");
+const modalClose = document.getElementById("modal-close");
+const modalTitle = document.getElementById("modal-title");
+const modalBody = document.getElementById("modal-body");
+const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+const mainNav = document.getElementById("main-nav");
+const header = document.getElementById("header");
+const navLinks = document.querySelectorAll("nav a");
+
+// Variável para guardar a posição do scroll
+let scrollPosition = 0;
+
 // Dados dos hacks (simulando um banco de dados)
 const hacks = [
   {
@@ -168,19 +183,55 @@ const hacks = [
     difficulty: "Médio",
     region: "Kanto",
   },
-];
 
-// Elementos do DOM
-const roomsContainer = document.getElementById("rooms-container");
-const filterButtons = document.querySelectorAll(".filter-btn");
-const modal = document.getElementById("room-modal");
-const modalClose = document.getElementById("modal-close");
-const modalTitle = document.getElementById("modal-title");
-const modalBody = document.getElementById("modal-body");
-const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-const mainNav = document.getElementById("main-nav");
-const header = document.getElementById("header");
-const navLinks = document.querySelectorAll("nav a");
+  {
+    id: 8,
+    title: "Pokémon Sword and Shield Ultimate Plus GBA",
+    creator: "GameFreak",
+    creatorUrl: "#",
+    image: "img/img-8.jpg",
+    description:
+      "A experiência completa de Sword/Shield adaptada para GBA, com todas as áreas, Pokémon e mecânicas dos jogos originais.",
+    generation: "gen3",
+    features: [
+      "Região de Galar completa",
+      "Dynamax/Gigantamax",
+      "Wild Area",
+      "Pokémon até Gen 8",
+      "Gráficos melhorados",
+      "História original",
+    ],
+    officialSite: "#",
+    status: "Completo",
+    version: "2.1",
+    difficulty: "Variável",
+    region: "Galar",
+  },
+
+  {
+    id: 9,
+    title: "Pokémon Emerald Seaglass",
+    creator: "Ekat",
+    creatorUrl: "#",
+    image: "img/img-9.jpg",
+    description:
+      "Uma experiência única no mundo de Hoenn com gráficos renovados, mecânicas modernas e uma paleta de cores suaves inspirada no mar.",
+    generation: "gen3",
+    features: [
+      "Grágicos renovados",
+      "Paleta de cores suaves",
+      "Mecânicas modernas",
+      "Pokémon até Gen 8",
+      "DexNav",
+      "Sistema de dia/noite",
+    ],
+    officialSite: "#",
+    status: "Completo",
+    version: "1.3",
+    difficulty: "Médio",
+    region: "Hoenn",
+  },
+];
 
 // Função para renderizar os cards
 function renderHacks(filter = "all") {
@@ -253,11 +304,22 @@ function renderHacks(filter = "all") {
   });
 }
 
-// Função para abrir o modal
+// Nova função para abrir o modal com controle de scroll
 function openModal(hackId) {
+  // Guarda a posição atual do scroll
+  scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+  // Desabilita o scroll da página
+  document.body.style.overflow = "hidden";
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${scrollPosition}px`;
+  document.body.style.width = "100%";
+
+  // Busca os dados do hack
   const hack = hacks.find((h) => h.id === hackId);
   if (!hack) return;
 
+  // Preenche o modal com os dados
   modalTitle.textContent = hack.title;
 
   modalBody.innerHTML = `
@@ -339,23 +401,30 @@ function openModal(hackId) {
       </div>
   `;
 
+  // Mostra o modal
+  modal.style.display = "flex";
+  setTimeout(() => {
+    modal.classList.add("show");
+  }, 10);
+
   // Adiciona evento ao botão de fechar dentro do modal
   document
     .getElementById("close-modal-btn")
     .addEventListener("click", closeModal);
-
-  // Mostra o modal com animação
-  modal.style.display = "block";
-  setTimeout(() => {
-    modal.classList.add("show");
-  }, 10);
 }
 
-// Função para fechar o modal
+// Nova função para fechar o modal com restauração de scroll
 function closeModal() {
   modal.classList.remove("show");
   setTimeout(() => {
     modal.style.display = "none";
+
+    // Restaura o scroll da página
+    document.body.style.overflow = "";
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+    window.scrollTo(0, scrollPosition);
   }, 300);
 }
 
@@ -423,16 +492,12 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const target = link.getAttribute("href");
 
-      // Fecha o menu mobile se estiver aberto
       if (mainNav.classList.contains("active")) {
         mainNav.classList.remove("active");
         mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
       }
 
-      // Rola para a seção
       smoothScroll(target);
-
-      // Atualiza URL sem recarregar a página
       history.pushState(null, null, target);
     });
   });
@@ -453,16 +518,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === modal) {
       closeModal();
     }
-  });
-
-  // Fechar menu ao clicar em um link
-  document.querySelectorAll("nav a").forEach((link) => {
-    link.addEventListener("click", () => {
-      if (mainNav.classList.contains("active")) {
-        mainNav.classList.remove("active");
-        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-      }
-    });
   });
 
   // Inicializa links ativos
