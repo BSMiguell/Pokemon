@@ -1,3 +1,4 @@
+/* ==================== VARIÁVEIS GLOBAIS ==================== */
 :root {
   --primary: #ff1a1a;
   --primary-dark: #cc0000;
@@ -19,6 +20,7 @@
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+/* ==================== RESET & BASE ==================== */
 * {
   margin: 0;
   padding: 0;
@@ -73,7 +75,7 @@ a {
   transition: var(--transition);
 }
 
-/* Layout */
+/* ==================== COMPONENTES COMUNS ==================== */
 .container {
   width: 90%;
   max-width: 1400px;
@@ -206,7 +208,7 @@ a {
   font-size: 0.9rem;
 }
 
-/* Header */
+/* ==================== HEADER ==================== */
 header {
   background-color: var(--dark);
   color: white;
@@ -296,7 +298,7 @@ nav a.active {
   z-index: 1001;
 }
 
-/* Hero Section */
+/* ==================== HERO SECTION ==================== */
 .hero {
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
     url("https://images.unsplash.com/photo-1542779283-429940ce8336?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80")
@@ -409,10 +411,98 @@ nav a.active {
   color: var(--gray);
 }
 
-/* Hack Rooms */
+/* ==================== HACK ROOMS SECTION ==================== */
 .hack-rooms {
   background-color: var(--light);
   position: relative;
+}
+
+/* Estilos da barra de pesquisa e sugestões */
+.search-container {
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  position: relative;
+}
+
+.search-box {
+  position: relative;
+}
+
+#hack-search {
+  width: 100%;
+  padding: 12px 20px;
+  padding-right: 40px;
+  border: 2px solid var(--primary);
+  border-radius: 50px;
+  font-size: 1rem;
+  outline: none;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow);
+}
+
+#hack-search:focus {
+  border-color: var(--secondary);
+}
+
+.search-box i {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+.search-suggestions.show {
+  display: block;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 1px solid var(--gray-light);
+  gap: 10px;
+}
+
+.suggestion-item:hover {
+  background-color: var(--gray-light);
+}
+
+.suggestion-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.suggestion-title {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.suggestion-creator {
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
 }
 
 .filter-controls {
@@ -745,7 +835,7 @@ nav a.active {
   flex-shrink: 0;
 }
 
-/* Footer */
+/* ==================== FOOTER ==================== */
 footer {
   background-color: var(--dark);
   color: white;
@@ -872,6 +962,124 @@ footer {
   background-color: var(--primary-dark);
 }
 
+/* ==================== */
+/* SEÇÃO DE DIREITOS AUTORAIS */
+/* ==================== */
+
+.legal-section {
+  background-color: var(--dark-light);
+  padding: 2.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 2rem 0;
+}
+
+.legal-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.legal-notice {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+}
+
+.legal-notice h3 {
+  color: var(--accent);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legal-notice h3::before {
+  content: "⚠️";
+}
+
+.legal-notice p {
+  color: #ccc;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.legal-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.legal-btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+}
+
+.dmca-btn {
+  background-color: var(--danger);
+  color: white;
+}
+
+.dmca-btn:hover {
+  background-color: #e53935;
+  transform: translateY(-2px);
+}
+
+.copyright-btn {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.copyright-btn:hover {
+  background-color: var(--secondary-dark);
+  transform: translateY(-2px);
+}
+
+.copyright-links {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.copyright-link {
+  color: var(--gray-light);
+  font-size: 0.85rem;
+  transition: var(--transition);
+  position: relative;
+}
+
+.copyright-link:hover {
+  color: var(--accent);
+}
+
+.copyright-link::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--accent);
+  transition: var(--transition);
+}
+
+.copyright-link:hover::after {
+  width: 100%;
+}
+
 .footer-bottom {
   text-align: center;
   padding-top: 2rem;
@@ -934,7 +1142,7 @@ footer {
   animation: pulse 2s infinite;
 }
 
-/* Responsivo */
+/* ==================== RESPONSIVO ==================== */
 @media (max-width: 1200px) {
   html {
     font-size: 15px;
@@ -1025,6 +1233,19 @@ footer {
 
   .modal-actions {
     flex-direction: column;
+    gap: 15px;
+  }
+
+  .legal-buttons {
+    flex-direction: column;
+  }
+
+  .legal-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .copyright-links {
     gap: 15px;
   }
 }
@@ -1135,4 +1356,33 @@ footer {
   .modal-content {
     max-height: 80vh;
   }
+}
+
+/* Adicione isto no seu arquivo CSS */
+.search-box {
+  position: relative;
+}
+
+.search-icons {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.search-icon,
+.clear-icon {
+  color: var(--primary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.clear-icon:hover {
+  color: var(--danger);
+}
+
+#hack-search {
+  padding-right: 50px; /* Espaço para os ícones */
 }
