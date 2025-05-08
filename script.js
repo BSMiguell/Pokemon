@@ -5,10 +5,6 @@ const modal = document.getElementById("room-modal");
 const modalClose = document.getElementById("modal-close");
 const modalTitle = document.getElementById("modal-title");
 const modalBody = document.getElementById("modal-body");
-const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-const mainNav = document.getElementById("main-nav");
-const header = document.getElementById("header");
-const navLinks = document.querySelectorAll("nav a");
 const prevPageBtn = document.getElementById("prev-page");
 const nextPageBtn = document.getElementById("next-page");
 const pageIndicator = document.getElementById("page-indicator");
@@ -16,6 +12,7 @@ const hackSearchInput = document.getElementById("hack-search");
 const searchSuggestions = document.getElementById("search-suggestions");
 const searchIcon = document.querySelector(".search-icon");
 const clearIcon = document.querySelector(".clear-icon");
+const hacksSection = document.getElementById("hacks");
 
 // Variáveis de estado
 let scrollPosition = 0;
@@ -23,10 +20,65 @@ let currentPage = 1;
 const cardsPerPage = 9;
 let currentSuggestions = [];
 let pesquisaConfirmada = false;
+let isLoading = false;
 
 // FUNÇÕES UTILITÁRIAS
 function removerAcentos(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function scrollToHacksSection() {
+  if (hacksSection) {
+    // Calcula a posição considerando o header fixo
+    const headerHeight = document.querySelector("header").offsetHeight;
+    const targetPosition = hacksSection.offsetTop - headerHeight;
+
+    window.scrollTo({
+      top: targetPosition,
+      behavior: "smooth",
+    });
+  }
+}
+
+// FUNÇÕES DE LOADING
+function showLoadingSkeleton() {
+  if (isLoading) return;
+  isLoading = true;
+
+  roomsContainer.innerHTML = "";
+  roomsContainer.classList.add("hidden");
+
+  const loadingHTML = `
+    <div class="skeleton-loading">
+      ${Array(9)
+        .fill()
+        .map(
+          () => `
+        <div class="skeleton-card">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-badge"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line long"></div>
+            <div class="skeleton-line extra-long"></div>
+          </div>
+        </div>
+      `
+        )
+        .join("")}
+    </div>
+  `;
+
+  roomsContainer.insertAdjacentHTML("beforebegin", loadingHTML);
+}
+
+function hideLoadingSkeleton() {
+  isLoading = false;
+  const loadingElement = document.querySelector(".skeleton-loading");
+  if (loadingElement) loadingElement.remove();
+  roomsContainer.classList.remove("hidden");
 }
 
 // FUNÇÕES DE PESQUISA
@@ -67,6 +119,7 @@ function renderSuggestions(suggestions) {
       pesquisaConfirmada = true;
       hackSearchInput.value = hack.title;
       searchSuggestions.classList.remove("show");
+      shouldScrollToSection = false; // Não faz scroll após pesquisa
       renderHacks("all", 1, hack.title);
     });
 
@@ -82,6 +135,7 @@ function clearSearch() {
   clearIcon.style.display = "none";
   searchIcon.style.display = "block";
   pesquisaConfirmada = true;
+  shouldScrollToSection = false; // Não faz scroll ao limpar pesquisa
   renderHacks("all", 1, "");
   searchSuggestions.classList.remove("show");
 
@@ -203,6 +257,24 @@ function renderHacks(filter = "all", page = 1, searchTerm = "") {
       termoParaPesquisar
     )}`
   );
+
+  // Scroll para o topo da seção apenas quando shouldScrollToSection for true
+  if (shouldScrollToSection) {
+    scrollToHacksSection();
+    shouldScrollToSection = false; // Reseta após o scroll
+  }
+}
+
+function scrollToHacksSection() {
+  if (hacksSection) {
+    // Usamos setTimeout para garantir que o DOM foi atualizado
+    setTimeout(() => {
+      window.scrollTo({
+        top: hacksSection.offsetTop - 20,
+        behavior: "smooth",
+      });
+    }, 50);
+  }
 }
 
 function setupCardEventListeners() {
@@ -354,7 +426,8 @@ document.addEventListener("DOMContentLoaded", () => {
     clearIcon.style.display = "block";
   }
 
-  // Renderiza hacks iniciais
+  // Renderiza hacks iniciais sem scroll
+  shouldScrollToSection = false;
   renderHacks(filter, page, searchTerm);
 
   // Evento de pesquisa
@@ -380,6 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") {
       pesquisaConfirmada = true;
       searchSuggestions.classList.remove("show");
+      shouldScrollToSection = false; // Não faz scroll após pesquisa
       renderHacks("all", 1, hackSearchInput.value.trim());
     }
   });
@@ -407,77 +481,100 @@ document.addEventListener("DOMContentLoaded", () => {
       clearIcon.style.display = "none";
       searchIcon.style.display = "block";
       searchSuggestions.classList.remove("show");
+      shouldScrollToSection = false; // Não faz scroll ao aplicar filtro
 
       renderHacks(btn.dataset.filter, 1, "");
     });
   });
 
-  // Paginação (com scroll apenas ao navegar entre páginas)
+  // Paginação com loading
   prevPageBtn.addEventListener("click", () => {
+    if (isLoading) return;
+
     const activeFilter =
       document.querySelector(".filter-btn.active").dataset.filter;
-    renderHacks(activeFilter, currentPage - 1, hackSearchInput.value.trim());
+    showLoadingSkeleton();
 
-    // Scroll suave apenas ao navegar entre páginas
-    const hacksSection = document.getElementById("hacks");
-    if (hacksSection) {
-      setTimeout(() => {
-        window.scrollTo({
-          top: hacksSection.offsetTop - 20,
-          behavior: "smooth",
-        });
-      }, 100);
-    }
+    // 1. Scroll para a seção ANTES de tudo
+    scrollToHacksSection();
+
+    // 2. Mostra o loading
+    showLoadingSkeleton();
+
+    // 3. Desabilita os botões
+    prevPageBtn.disabled = true;
+    nextPageBtn.disabled = true;
+
+    // 4. Simula o carregamento
+    setTimeout(() => {
+      renderHacks(activeFilter, currentPage - 1, hackSearchInput.value.trim());
+      hideLoadingSkeleton();
+      updatePaginationControls(
+        getFilteredHacksCount(activeFilter, hackSearchInput.value.trim())
+      );
+    }, 3000);
   });
 
   nextPageBtn.addEventListener("click", () => {
+    if (isLoading) return;
+
     const activeFilter =
       document.querySelector(".filter-btn.active").dataset.filter;
-    renderHacks(activeFilter, currentPage + 1, hackSearchInput.value.trim());
+    showLoadingSkeleton();
 
-    // Scroll suave apenas ao navegar entre páginas
-    const hacksSection = document.getElementById("hacks");
-    if (hacksSection) {
-      setTimeout(() => {
-        window.scrollTo({
-          top: hacksSection.offsetTop - 20,
-          behavior: "smooth",
-        });
-      }, 100);
-    }
+    // 1. Scroll para a seção ANTES de tudo
+    scrollToHacksSection();
+
+    // 2. Mostra o loading
+    showLoadingSkeleton();
+
+    // 3. Desabilita os botões
+    prevPageBtn.disabled = true;
+    nextPageBtn.disabled = true;
+
+    // 4. Simula o carregamento
+    setTimeout(() => {
+      renderHacks(activeFilter, currentPage + 1, hackSearchInput.value.trim());
+      hideLoadingSkeleton();
+      updatePaginationControls(
+        getFilteredHacksCount(activeFilter, hackSearchInput.value.trim())
+      );
+    }, 3000);
   });
+
+  // Função auxiliar para contar hacks filtrados
+  function getFilteredHacksCount(filter, searchTerm) {
+    let filteredHacks =
+      filter === "all"
+        ? [...hacks]
+        : hacks.filter((hack) => {
+            if (filter === "complete") return hack.status === "Completo";
+            if (filter === "new-region")
+              return hack.features.some((f) => f.includes("Região"));
+            if (filter === "difficulty") return hack.difficulty === "Difícil";
+            if (filter === "gen2") return hack.generation === "gen2";
+            if (filter === "gen3") return hack.generation === "gen3";
+            if (filter === "gen4") return hack.generation === "gen4";
+            return false;
+          });
+
+    if (searchTerm) {
+      const lowerTerm = removerAcentos(searchTerm.toLowerCase());
+      filteredHacks = filteredHacks.filter(
+        (hack) =>
+          removerAcentos(hack.title.toLowerCase()).includes(lowerTerm) ||
+          removerAcentos(hack.creator.toLowerCase()).includes(lowerTerm) ||
+          hack.features.some((feat) =>
+            removerAcentos(feat.toLowerCase()).includes(lowerTerm)
+          )
+      );
+    }
+
+    return filteredHacks.length;
+  }
 
   // Modal
   modalClose.addEventListener("click", closeModal);
-
-  // Menu mobile
-  mobileMenuBtn.addEventListener("click", () => {
-    mainNav.classList.toggle("active");
-    mobileMenuBtn.innerHTML = mainNav.classList.contains("active")
-      ? '<i class="fas fa-times"></i>'
-      : '<i class="fas fa-bars"></i>';
-  });
-
-  // Links de navegação
-  navLinks.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const target = link.getAttribute("href");
-
-      if (mainNav.classList.contains("active")) {
-        mainNav.classList.remove("active");
-        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-      }
-
-      history.pushState(null, null, target);
-      document.querySelector(target).scrollIntoView({ behavior: "smooth" });
-    });
-  });
-
-  // Header scroll effect
-  window.addEventListener("scroll", () => {
-    header.classList.toggle("scrolled", window.scrollY > 100);
-  });
 
   // Fechar modal ao clicar fora
   window.addEventListener("click", (e) => {
@@ -517,6 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
       searchIcon.style.display = "block";
       clearIcon.style.display = "none";
     }
+    shouldScrollToSection = false;
     renderHacks(filter, page, searchTerm);
   });
 });

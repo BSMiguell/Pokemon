@@ -208,96 +208,6 @@ a {
   font-size: 0.9rem;
 }
 
-/* ==================== HEADER ==================== */
-header {
-  background-color: var(--dark);
-  color: white;
-  padding: 1rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: var(--transition);
-}
-
-header.scrolled {
-  background-color: rgba(34, 34, 36, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem 0;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo img {
-  height: 50px;
-  transition: var(--transition);
-}
-
-header.scrolled .logo img {
-  height: 40px;
-}
-
-.logo h1 {
-  font-size: 1.8rem;
-  background: linear-gradient(to right, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-nav ul {
-  display: flex;
-  list-style: none;
-  gap: 25px;
-}
-
-nav a {
-  color: white;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 5px;
-  position: relative;
-}
-
-nav a::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--accent);
-  transition: var(--transition);
-}
-
-nav a:hover::after {
-  width: 100%;
-}
-
-nav a.active {
-  color: var(--accent);
-}
-
-.mobile-menu-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.8rem;
-  cursor: pointer;
-  z-index: 1001;
-}
-
 /* ==================== HERO SECTION ==================== */
 .hero {
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
@@ -508,28 +418,65 @@ nav a.active {
 .filter-controls {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 12px;
   margin-bottom: 3rem;
   flex-wrap: wrap;
 }
 
 .filter-btn {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background-color: white;
-  border: 1px solid #ddd;
+  border: none;
   border-radius: 50px;
   cursor: pointer;
-  transition: var(--transition);
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--dark);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1;
 }
 
-.filter-btn:hover,
-.filter-btn.active {
-  background-color: var(--primary);
+.filter-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s ease;
+  border-radius: 50px;
+}
+
+.filter-btn:hover {
   color: white;
-  border-color: var(--primary);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.filter-btn:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.filter-btn.active {
+  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.filter-btn.active::before {
+  transform: scaleX(1);
+}
+
+/* Efeito de clique */
+.filter-btn:active {
+  transform: scale(0.96);
 }
 
 .rooms-grid {
@@ -545,6 +492,9 @@ nav a.active {
   box-shadow: var(--box-shadow);
   transition: var(--transition);
   border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .room-card:hover {
@@ -583,6 +533,9 @@ nav a.active {
 
 .room-content {
   padding: 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .room-title {
@@ -644,6 +597,10 @@ nav a.active {
 .room-actions {
   display: flex;
   justify-content: space-between;
+  gap: 15px;
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
   gap: 15px;
 }
 
@@ -833,6 +790,87 @@ nav a.active {
 .modal-actions {
   padding: 1.5rem;
   flex-shrink: 0;
+}
+
+/* Skeleton Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.skeleton-loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2.5rem;
+  width: 100%;
+}
+
+.skeleton-card {
+  background-color: #f0f0f0;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  height: 480px; /* Ajuste conforme a altura dos seus cards */
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-img {
+  height: 220px;
+  background: #e0e0e0;
+}
+
+.skeleton-content {
+  padding: 2rem;
+}
+
+.skeleton-line {
+  height: 15px;
+  background: linear-gradient(to right, #f0f0f0 8%, #e0e0e0 18%, #f0f0f0 33%);
+  background-size: 800px 104px;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+.skeleton-line.long {
+  width: 100%;
+}
+
+.skeleton-line.extra-long {
+  width: 100%;
+  height: 100px;
+}
+
+.skeleton-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 80px;
+  height: 25px;
+  background: #e0e0e0;
+  border-radius: 50px;
+}
+
+.rooms-grid {
+  transition: opacity 0.3s ease;
+}
+
+.rooms-grid.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ==================== FOOTER ==================== */
@@ -1248,6 +1286,11 @@ footer {
   .copyright-links {
     gap: 15px;
   }
+
+  .room-actions {
+    display: grid;
+    grid-template-columns: 100px 135px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1356,33 +1399,4 @@ footer {
   .modal-content {
     max-height: 80vh;
   }
-}
-
-/* Adicione isto no seu arquivo CSS */
-.search-box {
-  position: relative;
-}
-
-.search-icons {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  gap: 8px;
-}
-
-.search-icon,
-.clear-icon {
-  color: var(--primary);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.clear-icon:hover {
-  color: var(--danger);
-}
-
-#hack-search {
-  padding-right: 50px; /* Espaço para os ícones */
 }
