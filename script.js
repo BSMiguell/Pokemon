@@ -4,8 +4,6 @@ const gridView = document.getElementById("grid-view");
 const listView = document.getElementById("list-view");
 const cardsView = document.getElementById("cards-view");
 const viewButtons = document.querySelectorAll(".view-btn");
-const filterButtons = document.querySelectorAll(".filter-btn");
-const quickFilters = document.querySelectorAll(".quick-filter");
 const modal = document.getElementById("hack-details-modal");
 const modalClose = document.getElementById("modal-close");
 const modalTitle = document.getElementById("modal-title");
@@ -18,8 +16,6 @@ const hackSearchInput = document.getElementById("hack-search");
 const searchSuggestions = document.getElementById("search-suggestions");
 const searchButton = document.getElementById("search-button");
 const clearButton = document.getElementById("clear-search");
-const toggleFiltersBtn = document.getElementById("toggle-filters");
-const advancedFilters = document.getElementById("advanced-filters");
 const sortSelect = document.getElementById("sort-by");
 const pageSizeSelect = document.getElementById("page-size");
 const resetFiltersBtn = document.getElementById("reset-filters");
@@ -31,12 +27,15 @@ const modalPrevHack = document.getElementById("modal-prev-hack");
 const modalNextHack = document.getElementById("modal-next-hack");
 const tabButtons = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
+const applyFiltersBtn = document.getElementById("apply-filters");
+const activeFiltersCount = document.getElementById("active-filters-count");
+const toggleFiltersBtn = document.getElementById("toggle-filters");
+const advancedFilters = document.getElementById("advanced-filters");
+const quickFilters = document.querySelectorAll(".quick-filter");
 
 // Variáveis de estado
 let currentPage = 1;
 let currentPageSize = 12;
-let currentFilter = null;
-let currentSort = "popularity";
 let currentSearchTerm = "";
 let currentView = "grid";
 let scrollPosition = 0;
@@ -45,6 +44,15 @@ let isLoading = false;
 let filteredHacks = [];
 let shouldSearch = false;
 let isTyping = false;
+let filtersVisible = false;
+
+// Estado dos filtros avançados
+let activeFilters = {
+  generations: [],
+  types: [],
+  features: [],
+  sort: "popularity",
+};
 
 // Constantes
 const DEFAULT_PAGE_SIZE = 12;
@@ -63,22 +71,95 @@ function removerAcentos(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+}
+
 function scrollToHacksSection() {
-  const headerHeight = document.querySelector("header").offsetHeight;
+  const headerHeight = document.querySelector("header")?.offsetHeight || 0;
   const hacksSection = document.getElementById("hacks");
   if (hacksSection) {
     const targetPosition = hacksSection.offsetTop - headerHeight - 20;
-
     window.scrollTo({
       top: targetPosition,
       behavior: "smooth",
     });
   }
 }
+
 function updateCounters(total, showing) {
   totalHacksSpan.textContent = total;
   showingCountSpan.textContent = showing;
   totalCountSpan.textContent = total;
+}
+
+// Atualiza o contador de filtros ativos
+function updateActiveFiltersCount() {
+  const count =
+    activeFilters.generations.length +
+    activeFilters.types.length +
+    activeFilters.features.length +
+    (activeFilters.sort !== "popularity" ? 1 : 0);
+
+  activeFiltersCount.textContent = `${count} filtro${
+    count !== 1 ? "s" : ""
+  } ativo${count !== 1 ? "s" : ""}`;
+
+  if (count > 0) {
+    activeFiltersCount.classList.add("highlight");
+  } else {
+    activeFiltersCount.classList.remove("highlight");
+  }
+}
+
+// FUNÇÕES PARA FILTROS RÁPIDOS
+function applyQuickFilter(filterType) {
+  // Limpa outros filtros
+  activeFilters = {
+    generations: [],
+    types: [],
+    features: [],
+    sort: "popularity",
+  };
+
+  // Aplica o filtro rápido
+  switch (filterType) {
+    case "trending":
+      activeFilters.features.push("trending");
+      break;
+    case "recent":
+      activeFilters.sort = "recent";
+      break;
+    case "featured":
+      activeFilters.features.push("featured");
+      break;
+  }
+
+  // Atualiza a UI
+  updateActiveFiltersCount();
+  currentPage = 1;
+  renderHacks();
+  scrollToHacksSection();
+}
+
+// FUNÇÃO PARA TOGGLE DOS FILTROS AVANÇADOS
+function toggleAdvancedFilters() {
+  filtersVisible = !filtersVisible;
+
+  if (filtersVisible) {
+    advancedFilters.style.display = "block";
+    toggleFiltersBtn.innerHTML =
+      '<i class="fas fa-chevron-up"></i> Ocultar Filtros';
+    advancedFilters.classList.add("show-filters");
+  } else {
+    advancedFilters.style.display = "none";
+    toggleFiltersBtn.innerHTML =
+      '<i class="fas fa-chevron-down"></i> Filtros Avançados';
+    advancedFilters.classList.remove("show-filters");
+  }
 }
 
 // FUNÇÕES DE LOADING
@@ -128,6 +209,15 @@ function hideLoadingSkeleton() {
 function filterHacks() {
   let results = [...hacks];
 
+  // Filtros rápidos - CORREÇÃO AQUI
+  if (activeFilters.features.includes("trending")) {
+    results = results.filter((hack) => hack.trending === true);
+  }
+
+  if (activeFilters.features.includes("featured")) {
+    results = results.filter((hack) => hack.featured === true);
+  }
+
   // Aplica filtro de pesquisa
   if (shouldSearch && currentSearchTerm) {
     const searchTerm = removerAcentos(currentSearchTerm.toLowerCase());
@@ -141,47 +231,74 @@ function filterHacks() {
     );
   }
 
-  // Aplica filtro selecionado (se houver)
-  if (currentFilter) {
-    results = results.filter((hack) => {
-      switch (currentFilter) {
-        case "trending":
-          return hack.trending;
-        case "recent":
-          return hack.recent;
-        case "featured":
-          return hack.featured;
-        case "gen1":
-          return hack.generation === "gen1";
-        case "gen2":
-          return hack.generation === "gen2";
-        case "gen3":
-          return hack.generation === "gen3";
-        case "gen4":
-          return hack.generation === "gen4";
-        case "complete":
-          return hack.status === "Completo";
-        case "new-region":
-          return hack.features.some((f) => f.includes("Região"));
-        case "difficulty":
-          return hack.difficulty === "Difícil";
-        case "megas":
-          return hack.features.some((f) => f.includes("Mega"));
-        case "z-moves":
-          return hack.features.some((f) => f.includes("Z-Move"));
-        case "dynamax":
-          return hack.features.some((f) => f.includes("Dynamax"));
-        case "all-gen":
-          return hack.features.some((f) => f.includes("Todas Gerações"));
-        default:
-          return true;
-      }
-    });
-  }
+  // Filtros avançados
+  results = results.filter((hack) => {
+    // Gerações
+    if (
+      activeFilters.generations.length > 0 &&
+      !activeFilters.generations.includes(hack.generation)
+    ) {
+      return false;
+    }
 
-  // Ordena os resultados
+    // Tipos
+    if (activeFilters.types.length > 0) {
+      let typeMatch = false;
+
+      if (
+        activeFilters.types.includes("new-region") &&
+        !["Kanto", "Johto", "Hoenn", "Sinnoh"].includes(hack.region)
+      ) {
+        typeMatch = true;
+      }
+      if (
+        activeFilters.types.includes("enhanced") &&
+        hack.features.some((f) => f.includes("Aprimorado"))
+      ) {
+        typeMatch = true;
+      }
+      if (
+        activeFilters.types.includes("difficulty") &&
+        hack.difficulty === "Difícil"
+      ) {
+        typeMatch = true;
+      }
+      if (
+        activeFilters.types.includes("complete") &&
+        hack.status === "Completo"
+      ) {
+        typeMatch = true;
+      }
+
+      if (!typeMatch) return false;
+    }
+
+    // Recursos
+    if (activeFilters.features.length > 0) {
+      let featureMatch = false;
+
+      if (activeFilters.features.includes("megas") && hack.hasMegas) {
+        featureMatch = true;
+      }
+      if (activeFilters.features.includes("z-moves") && hack.hasZMoves) {
+        featureMatch = true;
+      }
+      if (activeFilters.features.includes("dynamax") && hack.hasDynamax) {
+        featureMatch = true;
+      }
+      if (activeFilters.features.includes("all-gen") && hack.allGenerations) {
+        featureMatch = true;
+      }
+
+      if (!featureMatch) return false;
+    }
+
+    return true;
+  });
+
+  // Ordenação
   results.sort((a, b) => {
-    switch (currentSort) {
+    switch (activeFilters.sort) {
       case "popularity":
         return b.popularity - a.popularity;
       case "recent":
@@ -260,6 +377,7 @@ function renderSuggestions(suggestions) {
       shouldSearch = true;
       currentPage = 1;
       renderHacks();
+      scrollToHacksSection();
     });
 
     searchSuggestions.appendChild(suggestion);
@@ -308,9 +426,6 @@ function renderHacks() {
 
     hideLoadingSkeleton();
     updateURL();
-
-    // Mantém a posição de rolagem na seção de hacks
-    scrollToHacksSection();
   }, 500);
 }
 
@@ -434,10 +549,21 @@ function createCardViewElement(hack) {
 
 function updateURL() {
   const params = new URLSearchParams();
-  if (currentFilter) params.set("filter", currentFilter);
+
+  // Filtros ativos
+  if (activeFilters.generations.length > 0) {
+    params.set("generations", activeFilters.generations.join(","));
+  }
+  if (activeFilters.types.length > 0) {
+    params.set("types", activeFilters.types.join(","));
+  }
+  if (activeFilters.features.length > 0) {
+    params.set("features", activeFilters.features.join(","));
+  }
+
   params.set("page", currentPage);
   params.set("size", currentPageSize);
-  params.set("sort", currentSort);
+  params.set("sort", activeFilters.sort);
   params.set("view", currentView);
   if (currentSearchTerm) params.set("search", currentSearchTerm);
 
@@ -618,32 +744,60 @@ function activateTab(button) {
   document.getElementById(`${tabId}-tab`).classList.add("active");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Carrega parâmetros da URL
+// Carrega os filtros da URL
+function loadFiltersFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
-  currentFilter = urlParams.get("filter") || null;
+
+  // Gerações
+  if (urlParams.get("generations")) {
+    activeFilters.generations = urlParams.get("generations").split(",");
+    activeFilters.generations.forEach((gen) => {
+      const chip = document.querySelector(`.filter-chip[data-filter="${gen}"]`);
+      if (chip) chip.classList.add("active");
+    });
+  }
+
+  // Tipos
+  if (urlParams.get("types")) {
+    activeFilters.types = urlParams.get("types").split(",");
+    activeFilters.types.forEach((type) => {
+      const card = document.querySelector(
+        `.filter-card[data-filter="${type}"]`
+      );
+      if (card) card.classList.add("active");
+    });
+  }
+
+  // Recursos
+  if (urlParams.get("features")) {
+    activeFilters.features = urlParams.get("features").split(",");
+    activeFilters.features.forEach((feature) => {
+      const input = document.querySelector(
+        `.filter-switches input[data-filter="${feature}"]`
+      );
+      if (input) input.checked = true;
+    });
+  }
+
+  // Ordenação
+  if (urlParams.get("sort")) {
+    activeFilters.sort = urlParams.get("sort");
+    sortSelect.value = activeFilters.sort;
+  }
+
+  // Outros parâmetros
   currentPage = parseInt(urlParams.get("page")) || 1;
   currentPageSize = parseInt(urlParams.get("size")) || DEFAULT_PAGE_SIZE;
-  currentSort = urlParams.get("sort") || "popularity";
   currentView = urlParams.get("view") || "grid";
   currentSearchTerm = urlParams.get("search") || "";
   shouldSearch = !!currentSearchTerm;
 
-  // Configura estado inicial
+  // Atualiza UI
   hackSearchInput.value = currentSearchTerm;
   pageSizeSelect.value = currentPageSize;
-  sortSelect.value = currentSort;
   clearButton.style.display = currentSearchTerm ? "block" : "none";
 
-  // Ativa o filtro atual (se houver)
-  document.querySelectorAll(".filter-btn, .quick-filter").forEach((btn) => {
-    btn.classList.remove("active");
-    if (btn.dataset.filter === currentFilter) {
-      btn.classList.add("active");
-    }
-  });
-
-  // Ativa a visualização atual
+  // Ativa visualização
   viewButtons.forEach((btn) => {
     btn.classList.remove("active");
     if (btn.dataset.view === currentView) {
@@ -651,7 +805,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Mostra a visualização selecionada
   document
     .querySelectorAll(".hacks-grid, .hacks-list, .hacks-cards")
     .forEach((view) => {
@@ -659,11 +812,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   document.getElementById(`${currentView}-view`).classList.add("active");
 
+  updateActiveFiltersCount();
+}
+
+// INICIALIZAÇÃO
+document.addEventListener("DOMContentLoaded", () => {
+  // Carrega os filtros da URL
+  loadFiltersFromURL();
+
   // Renderiza os hacks
   renderHacks();
 
-  // EVENT LISTENERS
-  // Barra de pesquisa - comportamento original
+  // Event Listeners para barra de pesquisa
   hackSearchInput.addEventListener(
     "input",
     debounce((e) => {
@@ -685,15 +845,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, DEBOUNCE_DELAY)
   );
 
-  // Modifique estes event listeners para pesquisa:
   hackSearchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       isTyping = false;
       searchSuggestions.classList.remove("show");
       shouldSearch = true;
       currentPage = 1;
-      showLoadingSkeleton(); // Mostra loading ao confirmar pesquisa
+      showLoadingSkeleton();
       renderHacks();
+      scrollToHacksSection();
     }
   });
 
@@ -702,8 +862,9 @@ document.addEventListener("DOMContentLoaded", () => {
     searchSuggestions.classList.remove("show");
     shouldSearch = true;
     currentPage = 1;
-    showLoadingSkeleton(); // Mostra loading ao confirmar pesquisa
+    showLoadingSkeleton();
     renderHacks();
+    scrollToHacksSection();
   });
 
   clearButton.addEventListener("click", () => {
@@ -714,105 +875,120 @@ document.addEventListener("DOMContentLoaded", () => {
     searchSuggestions.classList.remove("show");
     shouldSearch = false;
     currentPage = 1;
-    showLoadingSkeleton(); // Mostra loading ao limpar pesquisa
+    showLoadingSkeleton();
     renderHacks();
   });
 
-  // Filtros (com desativação)
-  filterButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const filter = btn.dataset.filter;
-
-      if (currentFilter === filter) {
-        currentFilter = null;
-        btn.classList.remove("active");
-      } else {
-        currentFilter = filter;
-        document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
-          b.classList.remove("active");
-        });
-        btn.classList.add("active");
-      }
-
-      currentPage = 1;
-      renderHacks();
+  // Event Listeners para filtros rápidos
+  quickFilters.forEach((button) => {
+    button.addEventListener("click", function () {
+      // Remove a classe active de todos os botões
+      quickFilters.forEach((btn) => btn.classList.remove("active"));
+      // Adiciona a classe active apenas no botão clicado
+      this.classList.add("active");
+      // Aplica o filtro
+      applyQuickFilter(this.dataset.filter);
     });
   });
 
-  // EVENT LISTENERS
-  // Barra de pesquisa
-  hackSearchInput.addEventListener(
-    "input",
-    debounce((e) => {
-      currentSearchTerm = e.target.value.trim();
-      clearButton.style.display = currentSearchTerm ? "block" : "none";
-      currentPage = 1;
-      renderHacks();
-    }, DEBOUNCE_DELAY)
-  );
+  // Event Listener para toggle dos filtros avançados
+  toggleFiltersBtn.addEventListener("click", toggleAdvancedFilters);
 
-  hackSearchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      currentPage = 1;
-      renderHacks();
-    }
+  // Event Listeners para filtros
+  document.querySelectorAll(".filter-chip").forEach((chip) => {
+    chip.addEventListener("click", function () {
+      const filter = this.dataset.filter;
+      const index = activeFilters.generations.indexOf(filter);
+
+      if (index === -1) {
+        activeFilters.generations.push(filter);
+        this.classList.add("active");
+      } else {
+        activeFilters.generations.splice(index, 1);
+        this.classList.remove("active");
+      }
+
+      updateActiveFiltersCount();
+    });
   });
 
-  searchButton.addEventListener("click", () => {
+  document.querySelectorAll(".filter-card").forEach((card) => {
+    card.addEventListener("click", function () {
+      const filter = this.dataset.filter;
+      const index = activeFilters.types.indexOf(filter);
+
+      if (index === -1) {
+        activeFilters.types.push(filter);
+        this.classList.add("active");
+      } else {
+        activeFilters.types.splice(index, 1);
+        this.classList.remove("active");
+      }
+
+      updateActiveFiltersCount();
+    });
+  });
+
+  document.querySelectorAll(".filter-switches input").forEach((switchEl) => {
+    switchEl.addEventListener("change", function () {
+      const filter = this.dataset.filter;
+      const index = activeFilters.features.indexOf(filter);
+
+      if (this.checked && index === -1) {
+        activeFilters.features.push(filter);
+      } else if (!this.checked && index !== -1) {
+        activeFilters.features.splice(index, 1);
+      }
+
+      updateActiveFiltersCount();
+    });
+  });
+
+  // Ordenação
+  sortSelect.addEventListener("change", function () {
+    activeFilters.sort = this.value;
+    updateActiveFiltersCount();
+  });
+
+  // Aplicar filtros
+  applyFiltersBtn.addEventListener("click", () => {
     currentPage = 1;
     renderHacks();
+    scrollToHacksSection();
   });
 
-  clearButton.addEventListener("click", () => {
+  // Resetar filtros
+  resetFiltersBtn.addEventListener("click", function () {
+    // Reset all filters
+    activeFilters = {
+      generations: [],
+      types: [],
+      features: [],
+      sort: "popularity",
+    };
+
+    // Reset UI
+    document.querySelectorAll(".filter-chip, .filter-card").forEach((el) => {
+      el.classList.remove("active");
+    });
+
+    document.querySelectorAll(".filter-switches input").forEach((el) => {
+      el.checked = false;
+    });
+
+    // Reset filtros rápidos
+    quickFilters.forEach((btn) => btn.classList.remove("active"));
+
+    sortSelect.value = "popularity";
     hackSearchInput.value = "";
     currentSearchTerm = "";
     clearButton.style.display = "none";
+    searchSuggestions.classList.remove("show");
+    shouldSearch = false;
+
+    updateActiveFiltersCount();
     currentPage = 1;
     renderHacks();
-  });
-
-  // Filtros - agora podem ser desativados
-  filterButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const filter = btn.dataset.filter;
-
-      // Se clicar no filtro ativo, desativa
-      if (currentFilter === filter) {
-        currentFilter = null;
-        btn.classList.remove("active");
-      } else {
-        currentFilter = filter;
-        // Remove active de todos os botões
-        document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
-          b.classList.remove("active");
-        });
-        // Ativa apenas o botão clicado
-        btn.classList.add("active");
-      }
-
-      currentPage = 1;
-      renderHacks();
-    });
-  });
-
-  quickFilters.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const filter = btn.dataset.filter;
-
-      if (currentFilter === filter) {
-        currentFilter = null;
-        btn.classList.remove("active");
-      } else {
-        currentFilter = filter;
-        document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
-          b.classList.remove("active");
-        });
-        btn.classList.add("active");
-      }
-
-      currentPage = 1;
-      renderHacks();
-    });
   });
 
   // Visualizações
@@ -834,13 +1010,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Ordenação
-  sortSelect.addEventListener("change", () => {
-    currentSort = sortSelect.value;
-    currentPage = 1;
-    renderHacks();
-  });
-
   // Tamanho da página
   pageSizeSelect.addEventListener("change", () => {
     currentPageSize = parseInt(pageSizeSelect.value);
@@ -848,47 +1017,21 @@ document.addEventListener("DOMContentLoaded", () => {
     renderHacks();
   });
 
-  // Filtros avançados
-  toggleFiltersBtn.addEventListener("click", () => {
-    advancedFilters.classList.toggle("active");
-    toggleFiltersBtn
-      .querySelector("i:last-child")
-      .classList.toggle("fa-chevron-up");
-    toggleFiltersBtn
-      .querySelector("i:last-child")
-      .classList.toggle("fa-chevron-down");
-  });
-
-  // Resetar filtros
-  resetFiltersBtn.addEventListener("click", () => {
-    currentFilter = null;
-    currentSearchTerm = "";
-    currentSort = "popularity";
-    currentPage = 1;
-    hackSearchInput.value = "";
-    clearButton.style.display = "none";
-    sortSelect.value = "popularity";
-
-    document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
-      b.classList.remove("active");
-    });
-
-    renderHacks();
-  });
-
   // Paginação
   prevPageBtn.addEventListener("click", (e) => {
-    e.preventDefault(); // Evita comportamento padrão
+    e.preventDefault();
     if (prevPageBtn.disabled) return;
     currentPage--;
     renderHacks();
+    scrollToHacksSection();
   });
 
   nextPageBtn.addEventListener("click", (e) => {
-    e.preventDefault(); // Evita comportamento padrão
+    e.preventDefault();
     if (nextPageBtn.disabled) return;
     currentPage++;
     renderHacks();
+    scrollToHacksSection();
   });
 
   // Modal
@@ -908,43 +1051,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Navegação pelo histórico
   window.addEventListener("popstate", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    currentFilter = urlParams.get("filter") || null;
-    currentPage = parseInt(urlParams.get("page")) || 1;
-    currentPageSize = parseInt(urlParams.get("size")) || DEFAULT_PAGE_SIZE;
-    currentSort = urlParams.get("sort") || "popularity";
-    currentView = urlParams.get("view") || "grid";
-    currentSearchTerm = urlParams.get("search") || "";
-
-    // Atualiza UI
-    hackSearchInput.value = currentSearchTerm;
-    pageSizeSelect.value = currentPageSize;
-    sortSelect.value = currentSort;
-    clearButton.style.display = currentSearchTerm ? "block" : "none";
-
-    // Ativa filtro
-    document.querySelectorAll(".filter-btn, .quick-filter").forEach((btn) => {
-      btn.classList.remove("active");
-      if (btn.dataset.filter === currentFilter) {
-        btn.classList.add("active");
-      }
-    });
-
-    // Ativa visualização
-    viewButtons.forEach((btn) => {
-      btn.classList.remove("active");
-      if (btn.dataset.view === currentView) {
-        btn.classList.add("active");
-      }
-    });
-
-    document
-      .querySelectorAll(".hacks-grid, .hacks-list, .hacks-cards")
-      .forEach((view) => {
-        view.classList.remove("active");
-      });
-    document.getElementById(`${currentView}-view`).classList.add("active");
-
+    loadFiltersFromURL();
     renderHacks();
   });
+
+  // Rolagem para o topo ao atualizar
+  window.addEventListener("load", () => {
+    // Verifica se há parâmetros na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.toString() === "") {
+      scrollToTop();
+    }
+  });
 });
+
+// Rolagem para o topo ao clicar em próximo/anterior
+prevPageBtn.addEventListener("click", scrollToHacksSection);
+nextPageBtn.addEventListener("click", scrollToHacksSection);
