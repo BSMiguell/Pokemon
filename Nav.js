@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
       particles.appendChild(particle);
     }
 
-    // Adiciona os keyframes dinamicamente
+    // keyframes dinamicamente
     const style = document.createElement("style");
     style.textContent = `
       @keyframes float {

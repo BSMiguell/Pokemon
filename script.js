@@ -1,37 +1,73 @@
 // Elementos do DOM
-const roomsContainer = document.getElementById("rooms-container");
+const hacksContainer = document.getElementById("hacks-container");
+const gridView = document.getElementById("grid-view");
+const listView = document.getElementById("list-view");
+const cardsView = document.getElementById("cards-view");
+const viewButtons = document.querySelectorAll(".view-btn");
 const filterButtons = document.querySelectorAll(".filter-btn");
-const modal = document.getElementById("room-modal");
+const quickFilters = document.querySelectorAll(".quick-filter");
+const modal = document.getElementById("hack-details-modal");
 const modalClose = document.getElementById("modal-close");
 const modalTitle = document.getElementById("modal-title");
 const modalBody = document.getElementById("modal-body");
 const prevPageBtn = document.getElementById("prev-page");
 const nextPageBtn = document.getElementById("next-page");
-const pageIndicator = document.getElementById("page-indicator");
+const currentPageSpan = document.getElementById("current-page");
+const totalPagesSpan = document.getElementById("total-pages");
 const hackSearchInput = document.getElementById("hack-search");
 const searchSuggestions = document.getElementById("search-suggestions");
-const searchIcon = document.querySelector(".search-icon");
-const clearIcon = document.querySelector(".clear-icon");
-const hacksSection = document.getElementById("hacks");
+const searchButton = document.getElementById("search-button");
+const clearButton = document.getElementById("clear-search");
+const toggleFiltersBtn = document.getElementById("toggle-filters");
+const advancedFilters = document.getElementById("advanced-filters");
+const sortSelect = document.getElementById("sort-by");
+const pageSizeSelect = document.getElementById("page-size");
+const resetFiltersBtn = document.getElementById("reset-filters");
+const noResults = document.getElementById("no-results");
+const totalHacksSpan = document.getElementById("total-hacks");
+const showingCountSpan = document.getElementById("showing-count");
+const totalCountSpan = document.getElementById("total-count");
+const modalPrevHack = document.getElementById("modal-prev-hack");
+const modalNextHack = document.getElementById("modal-next-hack");
+const tabButtons = document.querySelectorAll(".tab-btn");
+const tabContents = document.querySelectorAll(".tab-content");
 
 // Variáveis de estado
-let scrollPosition = 0;
 let currentPage = 1;
-const cardsPerPage = 9;
-let currentSuggestions = [];
-let pesquisaConfirmada = false;
+let currentPageSize = 12;
+let currentFilter = null;
+let currentSort = "popularity";
+let currentSearchTerm = "";
+let currentView = "grid";
+let scrollPosition = 0;
+let currentHackIndex = 0;
 let isLoading = false;
+let filteredHacks = [];
+let shouldSearch = false;
+let isTyping = false;
+
+// Constantes
+const DEFAULT_PAGE_SIZE = 12;
+const DEBOUNCE_DELAY = 300;
 
 // FUNÇÕES UTILITÁRIAS
+function debounce(func, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
 function removerAcentos(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 function scrollToHacksSection() {
+  const headerHeight = document.querySelector("header").offsetHeight;
+  const hacksSection = document.getElementById("hacks");
   if (hacksSection) {
-    // Calcula a posição considerando o header fixo
-    const headerHeight = document.querySelector("header").offsetHeight;
-    const targetPosition = hacksSection.offsetTop - headerHeight;
+    const targetPosition = hacksSection.offsetTop - headerHeight - 20;
 
     window.scrollTo({
       top: targetPosition,
@@ -39,50 +75,146 @@ function scrollToHacksSection() {
     });
   }
 }
+function updateCounters(total, showing) {
+  totalHacksSpan.textContent = total;
+  showingCountSpan.textContent = showing;
+  totalCountSpan.textContent = total;
+}
 
 // FUNÇÕES DE LOADING
 function showLoadingSkeleton() {
   if (isLoading) return;
   isLoading = true;
 
-  roomsContainer.innerHTML = "";
-  roomsContainer.classList.add("hidden");
+  gridView.innerHTML = "";
+  listView.innerHTML = "";
+  cardsView.innerHTML = "";
 
-  const loadingHTML = `
-    <div class="skeleton-loading">
-      ${Array(9)
-        .fill()
-        .map(
-          () => `
-        <div class="skeleton-card">
-          <div class="skeleton-img"></div>
-          <div class="skeleton-badge"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-line medium"></div>
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-line long"></div>
-            <div class="skeleton-line extra-long"></div>
-          </div>
+  const skeletonCards = Array(currentPageSize)
+    .fill()
+    .map(
+      (_, i) => `
+    <div class="hack-card skeleton">
+      <div class="hack-img"></div>
+      <div class="hack-content">
+        <div class="hack-title"></div>
+        <div class="hack-creator"></div>
+        <div class="hack-features">
+          <span class="feature-tag"></span>
+          <span class="feature-tag"></span>
+          <span class="feature-tag"></span>
         </div>
-      `
-        )
-        .join("")}
+        <div class="hack-desc"></div>
+        <div class="hack-meta">
+          <div class="hack-rating"></div>
+          <div class="hack-version"></div>
+        </div>
+      </div>
     </div>
-  `;
+  `
+    )
+    .join("");
 
-  roomsContainer.insertAdjacentHTML("beforebegin", loadingHTML);
+  gridView.innerHTML = skeletonCards;
+  listView.innerHTML = skeletonCards;
+  cardsView.innerHTML = skeletonCards;
 }
 
 function hideLoadingSkeleton() {
   isLoading = false;
-  const loadingElement = document.querySelector(".skeleton-loading");
-  if (loadingElement) loadingElement.remove();
-  roomsContainer.classList.remove("hidden");
 }
 
-// FUNÇÕES DE PESQUISA
-function filterHacksBySearchTerm(term) {
+// FUNÇÕES DE PESQUISA E FILTRO
+function filterHacks() {
+  let results = [...hacks];
+
+  // Aplica filtro de pesquisa
+  if (shouldSearch && currentSearchTerm) {
+    const searchTerm = removerAcentos(currentSearchTerm.toLowerCase());
+    results = results.filter(
+      (hack) =>
+        removerAcentos(hack.title.toLowerCase()).includes(searchTerm) ||
+        removerAcentos(hack.creator.toLowerCase()).includes(searchTerm) ||
+        hack.features.some((feat) =>
+          removerAcentos(feat.toLowerCase()).includes(searchTerm)
+        )
+    );
+  }
+
+  // Aplica filtro selecionado (se houver)
+  if (currentFilter) {
+    results = results.filter((hack) => {
+      switch (currentFilter) {
+        case "trending":
+          return hack.trending;
+        case "recent":
+          return hack.recent;
+        case "featured":
+          return hack.featured;
+        case "gen1":
+          return hack.generation === "gen1";
+        case "gen2":
+          return hack.generation === "gen2";
+        case "gen3":
+          return hack.generation === "gen3";
+        case "gen4":
+          return hack.generation === "gen4";
+        case "complete":
+          return hack.status === "Completo";
+        case "new-region":
+          return hack.features.some((f) => f.includes("Região"));
+        case "difficulty":
+          return hack.difficulty === "Difícil";
+        case "megas":
+          return hack.features.some((f) => f.includes("Mega"));
+        case "z-moves":
+          return hack.features.some((f) => f.includes("Z-Move"));
+        case "dynamax":
+          return hack.features.some((f) => f.includes("Dynamax"));
+        case "all-gen":
+          return hack.features.some((f) => f.includes("Todas Gerações"));
+        default:
+          return true;
+      }
+    });
+  }
+
+  // Ordena os resultados
+  results.sort((a, b) => {
+    switch (currentSort) {
+      case "popularity":
+        return b.popularity - a.popularity;
+      case "recent":
+        return new Date(b.releaseDate) - new Date(a.releaseDate);
+      case "rating":
+        return b.rating - a.rating;
+      case "difficulty-asc":
+        const difficultyOrder = ["Fácil", "Médio", "Difícil"];
+        return (
+          difficultyOrder.indexOf(a.difficulty) -
+          difficultyOrder.indexOf(b.difficulty)
+        );
+      case "difficulty-desc":
+        return (
+          difficultyOrder.indexOf(b.difficulty) -
+          difficultyOrder.indexOf(a.difficulty)
+        );
+      case "name-asc":
+        return a.title.localeCompare(b.title);
+      case "name-desc":
+        return b.title.localeCompare(a.title);
+      default:
+        return 0;
+    }
+  });
+
+  filteredHacks = results;
+  return results;
+}
+
+function getSearchSuggestions(term) {
+  if (term.length < 2) return [];
+
   const lowerTerm = removerAcentos(term.toLowerCase());
   return hacks
     .filter(
@@ -109,18 +241,25 @@ function renderSuggestions(suggestions) {
     suggestion.className = "suggestion-item";
     suggestion.innerHTML = `
       <img src="${hack.image}" alt="${hack.title}" loading="lazy">
-      <div>
+      <div class="suggestion-info">
         <div class="suggestion-title">${hack.title}</div>
         <div class="suggestion-creator">por ${hack.creator}</div>
+        <div class="suggestion-features">
+          ${hack.features
+            .slice(0, 2)
+            .map((feat) => `<span class="suggestion-feature">${feat}</span>`)
+            .join("")}
+        </div>
       </div>
     `;
 
     suggestion.addEventListener("click", () => {
-      pesquisaConfirmada = true;
+      currentSearchTerm = hack.title;
       hackSearchInput.value = hack.title;
       searchSuggestions.classList.remove("show");
-      shouldScrollToSection = false; // Não faz scroll após pesquisa
-      renderHacks("all", 1, hack.title);
+      shouldSearch = true;
+      currentPage = 1;
+      renderHacks();
     });
 
     searchSuggestions.appendChild(suggestion);
@@ -129,40 +268,70 @@ function renderSuggestions(suggestions) {
   searchSuggestions.classList.add("show");
 }
 
-// FUNÇÃO PARA LIMPAR PESQUISA
-function clearSearch() {
-  hackSearchInput.value = "";
-  clearIcon.style.display = "none";
-  searchIcon.style.display = "block";
-  pesquisaConfirmada = true;
-  shouldScrollToSection = false; // Não faz scroll ao limpar pesquisa
-  renderHacks("all", 1, "");
-  searchSuggestions.classList.remove("show");
+// FUNÇÕES DE RENDERIZAÇÃO
+function renderHacks() {
+  showLoadingSkeleton();
 
-  // Ativa apenas o botão "Todos"
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
-    btn.classList.remove("active");
-    if (btn.dataset.filter === "all") btn.classList.add("active");
-  });
+  setTimeout(() => {
+    const filtered = filterHacks();
+    const totalHacks = filtered.length;
+    const totalPages = Math.ceil(totalHacks / currentPageSize);
+    const paginatedHacks = filtered.slice(
+      (currentPage - 1) * currentPageSize,
+      currentPage * currentPageSize
+    );
+
+    // Atualiza controles
+    currentPageSpan.textContent = currentPage;
+    totalPagesSpan.textContent = totalPages;
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+    updateCounters(totalHacks, paginatedHacks.length);
+
+    // Limpa containers
+    gridView.innerHTML = "";
+    listView.innerHTML = "";
+    cardsView.innerHTML = "";
+
+    if (paginatedHacks.length === 0) {
+      noResults.classList.add("active");
+    } else {
+      noResults.classList.remove("active");
+
+      // Renderiza nas visualizações
+      paginatedHacks.forEach((hack) => {
+        gridView.appendChild(createCardElement(hack));
+        listView.appendChild(createListItemElement(hack));
+        cardsView.appendChild(createCardViewElement(hack));
+      });
+    }
+
+    hideLoadingSkeleton();
+    updateURL();
+
+    // Mantém a posição de rolagem na seção de hacks
+    scrollToHacksSection();
+  }, 500);
 }
 
-// FUNÇÕES DE RENDERIZAÇÃO PRINCIPAL
 function createCardElement(hack) {
   const card = document.createElement("div");
-  card.className = "room-card";
-  card.dataset.id = hack.id;
-
+  card.className = "hack-card";
   card.innerHTML = `
-    <div class="room-img">
+    <div class="hack-img">
       <img src="${hack.image}" alt="${hack.title}" loading="lazy">
-      <span class="room-badge">${hack.status}</span>
+      ${
+        hack.status === "Completo"
+          ? `<span class="hack-badge">Completo</span>`
+          : `<span class="hack-badge beta">${hack.status}</span>`
+      }
     </div>
-    <div class="room-content">
-      <h3 class="room-title"><i class="fas fa-pokeball"></i> ${hack.title}</h3>
-      <p class="room-creator">Por <a href="${hack.creatorUrl}">${
-    hack.creator
-  }</a> | Gen ${hack.generation.replace("gen", "")}</p>
-      <div class="room-features">
+    <div class="hack-content">
+      <h3 class="hack-title">${hack.title}</h3>
+      <p class="hack-creator">Por <a href="${
+        hack.creatorUrl
+      }" target="_blank">${hack.creator}</a></p>
+      <div class="hack-features">
         ${hack.features
           .slice(0, 3)
           .map((feat) => `<span class="feature-tag">${feat}</span>`)
@@ -173,133 +342,111 @@ function createCardElement(hack) {
             : ""
         }
       </div>
-      <p class="room-desc">${hack.description}</p>
-      <div class="room-actions">
-        <button class="btn btn-sm btn-view" data-id="${hack.id}">
-          <i class="fas fa-info-circle"></i> Detalhes
-        </button>
-        <a href="${
-          hack.officialSite
-        }" class="btn btn-sm btn-primary" target="_blank">
-          <i class="fas fa-external-link-alt"></i> Site Oficial
-        </a>
+      <p class="hack-desc">${hack.description}</p>
+      <div class="hack-meta">
+        <div class="hack-rating">
+          ${"★".repeat(Math.floor(hack.rating))}${"☆".repeat(
+    5 - Math.floor(hack.rating)
+  )}
+          <span>${hack.rating.toFixed(1)}</span>
+        </div>
+        <span class="hack-version">v${hack.version}</span>
       </div>
     </div>
   `;
+
+  card.addEventListener("click", () => openModal(hack.id));
   return card;
 }
 
-function renderHacks(filter = "all", page = 1, searchTerm = "") {
-  // Se houver termo de pesquisa, força o filtro "all"
-  const termoParaPesquisar = searchTerm.trim();
-  if (termoParaPesquisar) {
-    filter = "all";
-    // Garante que apenas o botão "Todos" fique ativo
-    document.querySelectorAll(".filter-btn").forEach((btn) => {
-      btn.classList.remove("active");
-      if (btn.dataset.filter === "all") btn.classList.add("active");
-    });
-  }
+function createListItemElement(hack) {
+  const item = document.createElement("div");
+  item.className = "hack-list-item";
+  item.innerHTML = `
+    <div class="hack-list-img">
+      <img src="${hack.image}" alt="${hack.title}" loading="lazy">
+    </div>
+    <div class="hack-list-content">
+      <h3 class="hack-list-title">${hack.title}</h3>
+      <p class="hack-list-creator">Por ${hack.creator}</p>
+      <div class="hack-list-features">
+        ${hack.features
+          .slice(0, 2)
+          .map((feat) => `<span class="hack-list-feature">${feat}</span>`)
+          .join("")}
+      </div>
+    </div>
+    <div class="hack-list-meta">
+      <div class="hack-list-rating">
+        ${"★".repeat(Math.floor(hack.rating))}${"☆".repeat(
+    5 - Math.floor(hack.rating)
+  )}
+      </div>
+      <span class="hack-list-version">v${hack.version}</span>
+    </div>
+  `;
 
-  roomsContainer.innerHTML = "";
-  currentPage = page;
-
-  // Filtra os hacks
-  let filteredHacks =
-    filter === "all"
-      ? [...hacks]
-      : hacks.filter((hack) => {
-          if (filter === "complete") return hack.status === "Completo";
-          if (filter === "new-region")
-            return hack.features.some((f) => f.includes("Região"));
-          if (filter === "difficulty") return hack.difficulty === "Difícil";
-          if (filter === "gen2") return hack.generation === "gen2";
-          if (filter === "gen3") return hack.generation === "gen3";
-          if (filter === "gen4") return hack.generation === "gen4";
-          return false;
-        });
-
-  // Aplica pesquisa (ignorando acentos)
-  if (termoParaPesquisar) {
-    const lowerTerm = removerAcentos(termoParaPesquisar.toLowerCase());
-    filteredHacks = filteredHacks.filter(
-      (hack) =>
-        removerAcentos(hack.title.toLowerCase()).includes(lowerTerm) ||
-        removerAcentos(hack.creator.toLowerCase()).includes(lowerTerm) ||
-        hack.features.some((feat) =>
-          removerAcentos(feat.toLowerCase()).includes(lowerTerm)
-        )
-    );
-  }
-
-  // Paginação
-  const paginatedHacks = filteredHacks.slice(
-    (page - 1) * cardsPerPage,
-    page * cardsPerPage
-  );
-
-  // Renderiza os cards
-  paginatedHacks.forEach((hack) => {
-    roomsContainer.appendChild(createCardElement(hack));
-  });
-
-  // Configura os event listeners
-  setupCardEventListeners();
-
-  // Atualiza controles de paginação
-  updatePaginationControls(filteredHacks.length);
-
-  // Atualiza a URL
-  history.pushState(
-    null,
-    null,
-    `?filter=${filter}&page=${page}&search=${encodeURIComponent(
-      termoParaPesquisar
-    )}`
-  );
-
-  // Scroll para o topo da seção apenas quando shouldScrollToSection for true
-  if (shouldScrollToSection) {
-    scrollToHacksSection();
-    shouldScrollToSection = false; // Reseta após o scroll
-  }
+  item.addEventListener("click", () => openModal(hack.id));
+  return item;
 }
 
-function scrollToHacksSection() {
-  if (hacksSection) {
-    // Usamos setTimeout para garantir que o DOM foi atualizado
-    setTimeout(() => {
-      window.scrollTo({
-        top: hacksSection.offsetTop - 20,
-        behavior: "smooth",
-      });
-    }, 50);
-  }
+function createCardViewElement(hack) {
+  const card = document.createElement("div");
+  card.className = "hack-card-horizontal";
+  card.innerHTML = `
+    <div class="hack-card-img">
+      <img src="${hack.image}" alt="${hack.title}" loading="lazy">
+    </div>
+    <div class="hack-card-content">
+      <div class="hack-card-header">
+        <h3 class="hack-card-title">${hack.title}</h3>
+        ${
+          hack.status === "Completo"
+            ? `<span class="hack-card-badge">Completo</span>`
+            : `<span class="hack-card-badge beta">${hack.status}</span>`
+        }
+      </div>
+      <p class="hack-card-creator">Por ${
+        hack.creator
+      } | Gen ${hack.generation.replace("gen", "")}</p>
+      <p class="hack-card-desc">${hack.description}</p>
+      <div class="hack-card-footer">
+        <div class="hack-card-features">
+          ${hack.features
+            .slice(0, 2)
+            .map((feat) => `<span class="hack-card-feature">${feat}</span>`)
+            .join("")}
+        </div>
+        <div class="hack-card-meta">
+          <div class="hack-card-rating">
+            ${hack.rating.toFixed(1)}
+            <i class="fas fa-star"></i>
+          </div>
+          <span class="hack-card-version">v${hack.version}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  card.addEventListener("click", () => openModal(hack.id));
+  return card;
 }
 
-function setupCardEventListeners() {
-  document.querySelectorAll(".btn-view").forEach((btn) => {
-    btn.addEventListener("click", handleDetailsClick);
-  });
-}
+function updateURL() {
+  const params = new URLSearchParams();
+  if (currentFilter) params.set("filter", currentFilter);
+  params.set("page", currentPage);
+  params.set("size", currentPageSize);
+  params.set("sort", currentSort);
+  params.set("view", currentView);
+  if (currentSearchTerm) params.set("search", currentSearchTerm);
 
-function handleDetailsClick(e) {
-  e.preventDefault();
-  openModal(parseInt(this.getAttribute("data-id")));
-}
-
-function updatePaginationControls(totalHacks) {
-  const totalPages = Math.ceil(totalHacks / cardsPerPage);
-  pageIndicator.textContent = `Página ${currentPage} de ${
-    totalPages > 0 ? totalPages : 1
-  }`;
-  prevPageBtn.disabled = currentPage === 1;
-  nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+  history.pushState(null, null, `?${params.toString()}`);
 }
 
 // FUNÇÕES DO MODAL
 function openModal(hackId) {
-  scrollPosition = window.pageYOffset;
+  scrollPosition = window.scrollY;
   document.body.style.overflow = "hidden";
   document.body.style.position = "fixed";
   document.body.style.top = `-${scrollPosition}px`;
@@ -308,82 +455,133 @@ function openModal(hackId) {
   const hack = hacks.find((h) => h.id === hackId);
   if (!hack) return;
 
+  currentHackIndex = filteredHacks.findIndex((h) => h.id === hackId);
+
   modalTitle.textContent = hack.title;
-  modalBody.innerHTML = `
-    <img src="${hack.image}" alt="${
-    hack.title
-  }" class="modal-room-img" loading="lazy">
-    
-    <div class="modal-info-grid">
-      <div class="modal-info-item">
-        <i class="fas fa-user"></i> <strong>Criador:</strong> <a href="${
-          hack.creatorUrl
-        }" target="_blank">${hack.creator}</a>
-      </div>
-      <div class="modal-info-item">
-        <i class="fas fa-check-circle"></i> <strong>Status:</strong> ${
-          hack.status
-        }
-      </div>
-      <div class="modal-info-item">
-        <i class="fas fa-code-branch"></i> <strong>Versão:</strong> ${
-          hack.version
-        }
-      </div>
-      <div class="modal-info-item">
-        <i class="fas fa-tachometer-alt"></i> <strong>Dificuldade:</strong> ${
-          hack.difficulty
-        }
-      </div>
-      <div class="modal-info-item">
-        <i class="fas fa-globe-americas"></i> <strong>Região:</strong> ${
-          hack.region
-        }
-      </div>
-    </div>
-    
-    <div class="modal-section">
-      <h3>Recursos Principais</h3>
-      <div class="modal-features">
-        ${hack.features
-          .map(
-            (feat) => `
-          <div class="modal-feature">
-            <i class="fas fa-check"></i>
-            <h4>${feat}</h4>
-          </div>
-        `
-          )
-          .join("")}
-      </div>
-    </div>
-    
-    <div class="modal-section">
-      <h3>Descrição</h3>
-      <p>${hack.description}</p>
-    </div>
-    
-    <div class="modal-actions">
-      <a href="${hack.officialSite}" class="btn btn-primary" target="_blank">
-        <i class="fas fa-external-link-alt"></i> Visitar Site Oficial
-      </a>
-      <button class="btn btn-secondary" id="close-modal-btn">
-        <i class="fas fa-times"></i> Fechar
-      </button>
-    </div>
+
+  // Preenche os dados do modal
+  document.getElementById("modal-cover").src = hack.image;
+  document.getElementById("hack-creator").textContent = hack.creator;
+  document.getElementById("hack-release").textContent = new Date(
+    hack.releaseDate
+  ).toLocaleDateString();
+  document.getElementById("hack-updated").textContent = new Date(
+    hack.updateDate
+  ).toLocaleDateString();
+  document.getElementById("hack-version").textContent = hack.version;
+
+  // Recursos principais
+  const featuresList = document.getElementById("hack-features");
+  featuresList.innerHTML = hack.features
+    .slice(0, 8)
+    .map((feat) => `<li>${feat}</li>`)
+    .join("");
+
+  // Tags
+  const tagsContainer = document.getElementById("hack-tags");
+  tagsContainer.innerHTML = [
+    `Gen ${hack.generation.replace("gen", "")}`,
+    hack.difficulty,
+    hack.status,
+    ...hack.features.slice(0, 3),
+  ]
+    .map((tag) => `<span class="tag">${tag}</span>`)
+    .join("");
+
+  // Descrição
+  document.getElementById("hack-description").innerHTML = `
+    <p>${hack.description}</p>
+    ${hack.longDescription ? `<p>${hack.longDescription}</p>` : ""}
   `;
 
-  document
-    .getElementById("close-modal-btn")
-    .addEventListener("click", closeModal);
-  modal.style.display = "flex";
-  setTimeout(() => modal.classList.add("show"), 10);
+  // Screenshots
+  const screenshotsGallery = document.getElementById("screenshots-gallery");
+  screenshotsGallery.innerHTML = hack.screenshots
+    .map(
+      (img, i) => `
+      <div class="screenshot-item">
+        <img src="${img}" alt="Screenshot ${i + 1} do ${
+        hack.title
+      }" loading="lazy">
+      </div>
+    `
+    )
+    .join("");
+
+  // Atualizações
+  const updatesTimeline = document.getElementById("updates-timeline");
+  updatesTimeline.innerHTML = hack.updates
+    .map(
+      (update) => `
+      <div class="update-item">
+        <div class="update-version">${update.version}</div>
+        <div class="update-date">${new Date(
+          update.date
+        ).toLocaleDateString()}</div>
+        <div class="update-content">
+          ${update.description}
+          ${
+            update.features.length > 0
+              ? `
+            <ul class="update-features">
+              ${update.features.map((f) => `<li>${f}</li>`).join("")}
+            </ul>
+          `
+              : ""
+          }
+        </div>
+      </div>
+    `
+    )
+    .join("");
+
+  // Comunidade
+  const communityLinks = document.querySelector(".community-links");
+  communityLinks.innerHTML = `
+    <h4>Links Oficiais</h4>
+    ${
+      hack.discordUrl
+        ? `
+      <a href="${hack.discordUrl}" class="community-link" target="_blank">
+        <i class="fab fa-discord"></i> Discord do Criador
+      </a>
+    `
+        : ""
+    }
+    ${
+      hack.forumUrl
+        ? `
+      <a href="${hack.forumUrl}" class="community-link" target="_blank">
+        <i class="fab fa-github"></i> PokeCommunity Thread
+      </a>
+    `
+        : ""
+    }
+    ${
+      hack.officialSite
+        ? `
+      <a href="${hack.officialSite}" class="community-link" target="_blank">
+        <i class="fas fa-globe"></i> Site Oficial
+      </a>
+    `
+        : ""
+    }
+  `;
+
+  // Ativa a primeira aba
+  activateTab(document.querySelector(".tab-btn[data-tab='overview']"));
+
+  // Mostra o modal
+  modal.classList.add("active");
+
+  // Atualiza navegação entre hacks
+  updateModalNavigation();
 }
 
 function closeModal() {
-  modal.classList.remove("show");
+  modal.classList.remove("active");
+
   setTimeout(() => {
-    modal.style.display = "none";
     document.body.style.overflow = "";
     document.body.style.position = "";
     document.body.style.top = "";
@@ -392,189 +590,316 @@ function closeModal() {
   }, 300);
 }
 
-// INICIALIZAÇÃO
+function updateModalNavigation() {
+  modalPrevHack.disabled = currentHackIndex === 0;
+  modalNextHack.disabled = currentHackIndex === filteredHacks.length - 1;
+}
+
+function navigateToAdjacentHack(direction) {
+  if (direction === "prev" && currentHackIndex > 0) {
+    openModal(filteredHacks[currentHackIndex - 1].id);
+  } else if (
+    direction === "next" &&
+    currentHackIndex < filteredHacks.length - 1
+  ) {
+    openModal(filteredHacks[currentHackIndex + 1].id);
+  }
+}
+
+// FUNÇÕES DAS ABAS
+function activateTab(button) {
+  // Desativa todas as abas
+  tabButtons.forEach((btn) => btn.classList.remove("active"));
+  tabContents.forEach((content) => content.classList.remove("active"));
+
+  // Ativa a aba selecionada
+  button.classList.add("active");
+  const tabId = button.dataset.tab;
+  document.getElementById(`${tabId}-tab`).classList.add("active");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // Carrega parâmetros da URL
   const urlParams = new URLSearchParams(window.location.search);
-  const page = parseInt(urlParams.get("page")) || 1;
-  const searchTerm = urlParams.get("search") || "";
+  currentFilter = urlParams.get("filter") || null;
+  currentPage = parseInt(urlParams.get("page")) || 1;
+  currentPageSize = parseInt(urlParams.get("size")) || DEFAULT_PAGE_SIZE;
+  currentSort = urlParams.get("sort") || "popularity";
+  currentView = urlParams.get("view") || "grid";
+  currentSearchTerm = urlParams.get("search") || "";
+  shouldSearch = !!currentSearchTerm;
 
-  // Determina o filtro ativo
-  let filter = "all";
+  // Configura estado inicial
+  hackSearchInput.value = currentSearchTerm;
+  pageSizeSelect.value = currentPageSize;
+  sortSelect.value = currentSort;
+  clearButton.style.display = currentSearchTerm ? "block" : "none";
 
-  // Verifica se há um filtro válido na URL
-  const urlFilter = urlParams.get("filter");
-  if (
-    urlFilter &&
-    document.querySelector(`.filter-btn[data-filter="${urlFilter}"]`)
-  ) {
-    filter = urlFilter;
-  }
-
-  // Configura estado inicial dos botões
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
+  // Ativa o filtro atual (se houver)
+  document.querySelectorAll(".filter-btn, .quick-filter").forEach((btn) => {
     btn.classList.remove("active");
-    if (btn.dataset.filter === filter) {
+    if (btn.dataset.filter === currentFilter) {
       btn.classList.add("active");
     }
   });
 
-  hackSearchInput.value = searchTerm;
-  if (searchTerm) {
-    pesquisaConfirmada = true;
-    searchIcon.style.display = "none";
-    clearIcon.style.display = "block";
-  }
-
-  // Renderiza hacks iniciais sem scroll
-  shouldScrollToSection = false;
-  renderHacks(filter, page, searchTerm);
-
-  // Evento de pesquisa
-  hackSearchInput.addEventListener("input", (e) => {
-    const term = e.target.value.trim();
-
-    // Mostra/oculta ícones
-    if (term.length > 0) {
-      searchIcon.style.display = "none";
-      clearIcon.style.display = "block";
-    } else {
-      searchIcon.style.display = "block";
-      clearIcon.style.display = "none";
+  // Ativa a visualização atual
+  viewButtons.forEach((btn) => {
+    btn.classList.remove("active");
+    if (btn.dataset.view === currentView) {
+      btn.classList.add("active");
     }
-
-    currentSuggestions = term.length > 1 ? filterHacksBySearchTerm(term) : [];
-    renderSuggestions(currentSuggestions);
-    pesquisaConfirmada = false;
   });
 
-  // Tecla Enter na pesquisa
+  // Mostra a visualização selecionada
+  document
+    .querySelectorAll(".hacks-grid, .hacks-list, .hacks-cards")
+    .forEach((view) => {
+      view.classList.remove("active");
+    });
+  document.getElementById(`${currentView}-view`).classList.add("active");
+
+  // Renderiza os hacks
+  renderHacks();
+
+  // EVENT LISTENERS
+  // Barra de pesquisa - comportamento original
+  hackSearchInput.addEventListener(
+    "input",
+    debounce((e) => {
+      currentSearchTerm = e.target.value.trim();
+      clearButton.style.display = currentSearchTerm ? "block" : "none";
+      isTyping = true;
+
+      // Mostra sugestões enquanto digita
+      if (currentSearchTerm.length > 1) {
+        renderSuggestions(getSearchSuggestions(currentSearchTerm));
+      } else {
+        searchSuggestions.classList.remove("show");
+        shouldSearch = false;
+        currentPage = 1;
+        if (!isTyping) {
+          renderHacks();
+        }
+      }
+    }, DEBOUNCE_DELAY)
+  );
+
+  // Modifique estes event listeners para pesquisa:
   hackSearchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      pesquisaConfirmada = true;
+      isTyping = false;
       searchSuggestions.classList.remove("show");
-      shouldScrollToSection = false; // Não faz scroll após pesquisa
-      renderHacks("all", 1, hackSearchInput.value.trim());
+      shouldSearch = true;
+      currentPage = 1;
+      showLoadingSkeleton(); // Mostra loading ao confirmar pesquisa
+      renderHacks();
     }
   });
 
-  // Fechar sugestões ao clicar fora
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".search-box")) {
-      searchSuggestions.classList.remove("show");
-    }
+  searchButton.addEventListener("click", () => {
+    isTyping = false;
+    searchSuggestions.classList.remove("show");
+    shouldSearch = true;
+    currentPage = 1;
+    showLoadingSkeleton(); // Mostra loading ao confirmar pesquisa
+    renderHacks();
   });
 
-  // Evento para o ícone X
-  clearIcon.addEventListener("click", clearSearch);
+  clearButton.addEventListener("click", () => {
+    isTyping = false;
+    hackSearchInput.value = "";
+    currentSearchTerm = "";
+    clearButton.style.display = "none";
+    searchSuggestions.classList.remove("show");
+    shouldSearch = false;
+    currentPage = 1;
+    showLoadingSkeleton(); // Mostra loading ao limpar pesquisa
+    renderHacks();
+  });
 
-  // Filtros
+  // Filtros (com desativação)
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      // Remove a classe active de todos os botões
-      filterButtons.forEach((b) => b.classList.remove("active"));
-      // Adiciona apenas ao botão clicado
-      btn.classList.add("active");
+      const filter = btn.dataset.filter;
 
-      // Limpa a pesquisa
-      hackSearchInput.value = "";
-      clearIcon.style.display = "none";
-      searchIcon.style.display = "block";
-      searchSuggestions.classList.remove("show");
-      shouldScrollToSection = false; // Não faz scroll ao aplicar filtro
+      if (currentFilter === filter) {
+        currentFilter = null;
+        btn.classList.remove("active");
+      } else {
+        currentFilter = filter;
+        document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
+          b.classList.remove("active");
+        });
+        btn.classList.add("active");
+      }
 
-      renderHacks(btn.dataset.filter, 1, "");
+      currentPage = 1;
+      renderHacks();
     });
   });
 
-  // Paginação com loading
-  prevPageBtn.addEventListener("click", () => {
-    if (isLoading) return;
+  // EVENT LISTENERS
+  // Barra de pesquisa
+  hackSearchInput.addEventListener(
+    "input",
+    debounce((e) => {
+      currentSearchTerm = e.target.value.trim();
+      clearButton.style.display = currentSearchTerm ? "block" : "none";
+      currentPage = 1;
+      renderHacks();
+    }, DEBOUNCE_DELAY)
+  );
 
-    const activeFilter =
-      document.querySelector(".filter-btn.active").dataset.filter;
-    showLoadingSkeleton();
-
-    // 1. Scroll para a seção ANTES de tudo
-    scrollToHacksSection();
-
-    // 2. Mostra o loading
-    showLoadingSkeleton();
-
-    // 3. Desabilita os botões
-    prevPageBtn.disabled = true;
-    nextPageBtn.disabled = true;
-
-    // 4. Simula o carregamento
-    setTimeout(() => {
-      renderHacks(activeFilter, currentPage - 1, hackSearchInput.value.trim());
-      hideLoadingSkeleton();
-      updatePaginationControls(
-        getFilteredHacksCount(activeFilter, hackSearchInput.value.trim())
-      );
-    }, 3000);
-  });
-
-  nextPageBtn.addEventListener("click", () => {
-    if (isLoading) return;
-
-    const activeFilter =
-      document.querySelector(".filter-btn.active").dataset.filter;
-    showLoadingSkeleton();
-
-    // 1. Scroll para a seção ANTES de tudo
-    scrollToHacksSection();
-
-    // 2. Mostra o loading
-    showLoadingSkeleton();
-
-    // 3. Desabilita os botões
-    prevPageBtn.disabled = true;
-    nextPageBtn.disabled = true;
-
-    // 4. Simula o carregamento
-    setTimeout(() => {
-      renderHacks(activeFilter, currentPage + 1, hackSearchInput.value.trim());
-      hideLoadingSkeleton();
-      updatePaginationControls(
-        getFilteredHacksCount(activeFilter, hackSearchInput.value.trim())
-      );
-    }, 3000);
-  });
-
-  // Função auxiliar para contar hacks filtrados
-  function getFilteredHacksCount(filter, searchTerm) {
-    let filteredHacks =
-      filter === "all"
-        ? [...hacks]
-        : hacks.filter((hack) => {
-            if (filter === "complete") return hack.status === "Completo";
-            if (filter === "new-region")
-              return hack.features.some((f) => f.includes("Região"));
-            if (filter === "difficulty") return hack.difficulty === "Difícil";
-            if (filter === "gen2") return hack.generation === "gen2";
-            if (filter === "gen3") return hack.generation === "gen3";
-            if (filter === "gen4") return hack.generation === "gen4";
-            return false;
-          });
-
-    if (searchTerm) {
-      const lowerTerm = removerAcentos(searchTerm.toLowerCase());
-      filteredHacks = filteredHacks.filter(
-        (hack) =>
-          removerAcentos(hack.title.toLowerCase()).includes(lowerTerm) ||
-          removerAcentos(hack.creator.toLowerCase()).includes(lowerTerm) ||
-          hack.features.some((feat) =>
-            removerAcentos(feat.toLowerCase()).includes(lowerTerm)
-          )
-      );
+  hackSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      currentPage = 1;
+      renderHacks();
     }
+  });
 
-    return filteredHacks.length;
-  }
+  searchButton.addEventListener("click", () => {
+    currentPage = 1;
+    renderHacks();
+  });
+
+  clearButton.addEventListener("click", () => {
+    hackSearchInput.value = "";
+    currentSearchTerm = "";
+    clearButton.style.display = "none";
+    currentPage = 1;
+    renderHacks();
+  });
+
+  // Filtros - agora podem ser desativados
+  filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter;
+
+      // Se clicar no filtro ativo, desativa
+      if (currentFilter === filter) {
+        currentFilter = null;
+        btn.classList.remove("active");
+      } else {
+        currentFilter = filter;
+        // Remove active de todos os botões
+        document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
+          b.classList.remove("active");
+        });
+        // Ativa apenas o botão clicado
+        btn.classList.add("active");
+      }
+
+      currentPage = 1;
+      renderHacks();
+    });
+  });
+
+  quickFilters.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter;
+
+      if (currentFilter === filter) {
+        currentFilter = null;
+        btn.classList.remove("active");
+      } else {
+        currentFilter = filter;
+        document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
+          b.classList.remove("active");
+        });
+        btn.classList.add("active");
+      }
+
+      currentPage = 1;
+      renderHacks();
+    });
+  });
+
+  // Visualizações
+  viewButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentView = btn.dataset.view;
+
+      viewButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      document
+        .querySelectorAll(".hacks-grid, .hacks-list, .hacks-cards")
+        .forEach((view) => {
+          view.classList.remove("active");
+        });
+      document.getElementById(`${currentView}-view`).classList.add("active");
+
+      updateURL();
+    });
+  });
+
+  // Ordenação
+  sortSelect.addEventListener("change", () => {
+    currentSort = sortSelect.value;
+    currentPage = 1;
+    renderHacks();
+  });
+
+  // Tamanho da página
+  pageSizeSelect.addEventListener("change", () => {
+    currentPageSize = parseInt(pageSizeSelect.value);
+    currentPage = 1;
+    renderHacks();
+  });
+
+  // Filtros avançados
+  toggleFiltersBtn.addEventListener("click", () => {
+    advancedFilters.classList.toggle("active");
+    toggleFiltersBtn
+      .querySelector("i:last-child")
+      .classList.toggle("fa-chevron-up");
+    toggleFiltersBtn
+      .querySelector("i:last-child")
+      .classList.toggle("fa-chevron-down");
+  });
+
+  // Resetar filtros
+  resetFiltersBtn.addEventListener("click", () => {
+    currentFilter = null;
+    currentSearchTerm = "";
+    currentSort = "popularity";
+    currentPage = 1;
+    hackSearchInput.value = "";
+    clearButton.style.display = "none";
+    sortSelect.value = "popularity";
+
+    document.querySelectorAll(".filter-btn, .quick-filter").forEach((b) => {
+      b.classList.remove("active");
+    });
+
+    renderHacks();
+  });
+
+  // Paginação
+  prevPageBtn.addEventListener("click", (e) => {
+    e.preventDefault(); // Evita comportamento padrão
+    if (prevPageBtn.disabled) return;
+    currentPage--;
+    renderHacks();
+  });
+
+  nextPageBtn.addEventListener("click", (e) => {
+    e.preventDefault(); // Evita comportamento padrão
+    if (nextPageBtn.disabled) return;
+    currentPage++;
+    renderHacks();
+  });
 
   // Modal
   modalClose.addEventListener("click", closeModal);
+  modalPrevHack.addEventListener("click", () => navigateToAdjacentHack("prev"));
+  modalNextHack.addEventListener("click", () => navigateToAdjacentHack("next"));
+
+  // Abas do modal
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => activateTab(btn));
+  });
 
   // Fechar modal ao clicar fora
   window.addEventListener("click", (e) => {
@@ -584,37 +909,42 @@ document.addEventListener("DOMContentLoaded", () => {
   // Navegação pelo histórico
   window.addEventListener("popstate", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const page = parseInt(urlParams.get("page")) || 1;
-    const searchTerm = urlParams.get("search") || "";
+    currentFilter = urlParams.get("filter") || null;
+    currentPage = parseInt(urlParams.get("page")) || 1;
+    currentPageSize = parseInt(urlParams.get("size")) || DEFAULT_PAGE_SIZE;
+    currentSort = urlParams.get("sort") || "popularity";
+    currentView = urlParams.get("view") || "grid";
+    currentSearchTerm = urlParams.get("search") || "";
 
-    // Determina o filtro ativo
-    let filter = "all";
-    const urlFilter = urlParams.get("filter");
-    if (
-      urlFilter &&
-      document.querySelector(`.filter-btn[data-filter="${urlFilter}"]`)
-    ) {
-      filter = urlFilter;
-    }
+    // Atualiza UI
+    hackSearchInput.value = currentSearchTerm;
+    pageSizeSelect.value = currentPageSize;
+    sortSelect.value = currentSort;
+    clearButton.style.display = currentSearchTerm ? "block" : "none";
 
-    // Atualiza os botões de filtro
-    document.querySelectorAll(".filter-btn").forEach((btn) => {
+    // Ativa filtro
+    document.querySelectorAll(".filter-btn, .quick-filter").forEach((btn) => {
       btn.classList.remove("active");
-      if (btn.dataset.filter === filter) {
+      if (btn.dataset.filter === currentFilter) {
         btn.classList.add("active");
       }
     });
 
-    hackSearchInput.value = searchTerm;
-    pesquisaConfirmada = !!searchTerm;
-    if (searchTerm) {
-      searchIcon.style.display = "none";
-      clearIcon.style.display = "block";
-    } else {
-      searchIcon.style.display = "block";
-      clearIcon.style.display = "none";
-    }
-    shouldScrollToSection = false;
-    renderHacks(filter, page, searchTerm);
+    // Ativa visualização
+    viewButtons.forEach((btn) => {
+      btn.classList.remove("active");
+      if (btn.dataset.view === currentView) {
+        btn.classList.add("active");
+      }
+    });
+
+    document
+      .querySelectorAll(".hacks-grid, .hacks-list, .hacks-cards")
+      .forEach((view) => {
+        view.classList.remove("active");
+      });
+    document.getElementById(`${currentView}-view`).classList.add("active");
+
+    renderHacks();
   });
 });

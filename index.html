@@ -17,6 +17,7 @@
 
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="Nav.css" />
+    <link rel="stylesheet" href="Hack-Rooms.css" />
   </head>
   <body>
     <!-- Header -->
@@ -210,63 +211,234 @@
       </div>
     </section>
 
-    <!-- Hack Rooms Section -->
+    <!-- Hack Rooms Section - Versão Aprimorada -->
     <section class="section hack-rooms" id="hacks">
       <div class="container" id="hacks-container">
-        <div class="section-title">
-          <h2>Hack Rooms</h2>
-          <p>
-            Explore nossa coleção dos melhores hacks de Pokémon criados pela
-            comunidade
-          </p>
-        </div>
+        <div class="section-header">
+          <div class="section-title">
+            <h2>Explorar Hack Rooms</h2>
+            <p>Descubra e filtre os melhores hacks de Pokémon da comunidade</p>
+          </div>
 
-        <!-- barra de pesquisa -->
-        <div class="search-container">
-          <div class="search-box">
-            <input
-              type="text"
-              id="hack-search"
-              placeholder="Pesquisar hacks por nome..."
-              autocomplete="off"
-            />
-            <div class="search-icons">
-              <i class="fas fa-search search-icon"></i>
-              <i class="fas fa-times clear-icon" style="display: none"></i>
-            </div>
-            <div class="search-suggestions" id="search-suggestions"></div>
+          <!-- Contador de hacks -->
+          <div class="hacks-counter">
+            <span id="total-hacks">0</span> Hacks Disponíveis
           </div>
         </div>
 
-        <div class="filter-controls">
-          <button class="filter-btn active" data-filter="all">Todos</button>
-          <button class="filter-btn" data-filter="gen2">Gen 2</button>
-          <button class="filter-btn" data-filter="gen3">Gen 3</button>
-          <button class="filter-btn" data-filter="gen4">Gen 4</button>
-          <button class="filter-btn" data-filter="complete">Completos</button>
-          <button class="filter-btn" data-filter="new-region">
-            Novas Regiões
-          </button>
-          <button class="filter-btn" data-filter="difficulty">
-            Dificuldade
-          </button>
+        <!-- Sistema avançado de busca e filtros -->
+        <div class="search-filter-system">
+          <!-- Barra de pesquisa avançada -->
+          <div class="advanced-search">
+            <div class="search-box">
+              <input
+                type="text"
+                id="hack-search"
+                placeholder="Buscar hacks por nome, criador ou características..."
+                autocomplete="off"
+              />
+              <div class="search-controls">
+                <button class="search-btn" id="search-button">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button
+                  class="clear-btn"
+                  id="clear-search"
+                  style="display: none"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+
+            <!-- Filtro rápido -->
+            <div class="quick-filters">
+              <button class="quick-filter" data-filter="trending">
+                <i class="fas fa-fire"></i> Em Alta
+              </button>
+              <button class="quick-filter" data-filter="recent">
+                <i class="fas fa-clock"></i> Recentes
+              </button>
+              <button class="quick-filter" data-filter="featured">
+                <i class="fas fa-crown"></i> Destaques
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtros avançados (expandível) -->
+          <div class="advanced-filters-container">
+            <button class="toggle-filters-btn" id="toggle-filters">
+              <i class="fas fa-sliders-h"></i> Filtros Avançados
+              <i class="fas fa-chevron-down"></i>
+            </button>
+
+            <div class="advanced-filters" id="advanced-filters">
+              <div class="filter-group">
+                <h4>Geração Base</h4>
+                <div class="filter-options">
+                  <button class="filter-btn" data-filter="gen1">
+                    <img
+                      src="https://via.placeholder.com/20/ff0000"
+                      alt="Gen 1"
+                    />
+                    Gen 1
+                  </button>
+                  <button class="filter-btn" data-filter="gen2">
+                    <img
+                      src="https://via.placeholder.com/20/ffff00"
+                      alt="Gen 2"
+                    />
+                    Gen 2
+                  </button>
+                  <button class="filter-btn" data-filter="gen3">
+                    <img
+                      src="https://via.placeholder.com/20/00ff00"
+                      alt="Gen 3"
+                    />
+                    Gen 3
+                  </button>
+                  <button class="filter-btn" data-filter="gen4">
+                    <img
+                      src="https://via.placeholder.com/20/0000ff"
+                      alt="Gen 4"
+                    />
+                    Gen 4
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <h4>Tipo de Hack</h4>
+                <div class="filter-options">
+                  <button class="filter-btn" data-filter="new-region">
+                    <i class="fas fa-map-marked-alt"></i> Nova Região
+                  </button>
+                  <button class="filter-btn" data-filter="enhanced">
+                    <i class="fas fa-plus-circle"></i> Jogo Aprimorado
+                  </button>
+                  <button class="filter-btn" data-filter="difficulty">
+                    <i class="fas fa-skull"></i> Dificuldade
+                  </button>
+                  <button class="filter-btn" data-filter="complete">
+                    <i class="fas fa-check-circle"></i> Completos
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <h4>Recursos</h4>
+                <div class="filter-options">
+                  <button class="filter-btn" data-filter="megas">
+                    <i class="fas fa-bolt"></i> Mega Evoluções
+                  </button>
+                  <button class="filter-btn" data-filter="z-moves">
+                    <i class="fas fa-gem"></i> Z-Moves
+                  </button>
+                  <button class="filter-btn" data-filter="dynamax">
+                    <i class="fas fa-arrows-alt"></i> Dynamax
+                  </button>
+                  <button class="filter-btn" data-filter="all-gen">
+                    <i class="fas fa-dna"></i> Todas Gerações
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <h4>Ordenar Por</h4>
+                <select class="sort-select" id="sort-by">
+                  <option value="popularity">Mais Populares</option>
+                  <option value="recent">Mais Recentes</option>
+                  <option value="rating">Melhor Avaliados</option>
+                  <option value="difficulty-asc">
+                    Dificuldade (Fácil → Difícil)
+                  </option>
+                  <option value="difficulty-desc">
+                    Dificuldade (Difícil → Fácil)
+                  </option>
+                  <option value="name-asc">Nome (A-Z)</option>
+                  <option value="name-desc">Nome (Z-A)</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="rooms-grid" id="rooms-container">
-          <!-- Cards serão inseridos via JavaScript -->
+        <!-- Visualização dos resultados -->
+        <div class="view-options">
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="grid">
+              <i class="fas fa-th"></i> Grade
+            </button>
+            <button class="view-btn" data-view="list">
+              <i class="fas fa-list"></i> Lista
+            </button>
+            <button class="view-btn" data-view="cards">
+              <i class="fas fa-id-card"></i> Cartões
+            </button>
+          </div>
+
+          <div class="results-info">
+            Mostrando <span id="showing-count">0</span> de
+            <span id="total-count">0</span> hacks
+          </div>
         </div>
-      </div>
 
-      <div class="pagination-controls">
-        <button id="prev-page" class="btn btn-sm" disabled>
-          <i class="fas fa-chevron-left"></i> Anterior
-        </button>
+        <!-- Container principal dos hacks -->
+        <div class="hacks-display">
+          <!-- Visualização em Grade (padrão) -->
+          <div class="hacks-grid active" id="grid-view">
+            <!-- Cards serão inseridos via JavaScript -->
+          </div>
 
-        <span id="page-indicator">Página 1</span>
+          <!-- Visualização em Lista -->
+          <div class="hacks-list" id="list-view">
+            <!-- Lista será inserida via JavaScript -->
+          </div>
 
-        <button id="next-page" class="btn btn-sm">
-          Próxima <i class="fas fa-chevron-right"></i>
-        </button>
+          <!-- Visualização em Cartões -->
+          <div class="hacks-cards" id="cards-view">
+            <!-- Cartões horizontais serão inseridos via JavaScript -->
+          </div>
+
+          <!-- Mensagem quando não há resultados -->
+          <div class="no-results" id="no-results">
+            <img src="https://via.placeholder.com/150" alt="Nenhum resultado" />
+            <h3>Nenhum hack encontrado</h3>
+            <p>
+              Tente ajustar seus filtros de busca ou pesquisar por termos
+              diferentes
+            </p>
+            <button class="btn btn-outline" id="reset-filters">
+              <i class="fas fa-redo"></i> Limpar Filtros
+            </button>
+          </div>
+        </div>
+
+        <!-- Paginação e controles -->
+        <div class="results-footer">
+          <div class="pagination-controls">
+            <button id="prev-page" class="btn btn-pagination" disabled>
+              <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+
+            <div class="page-indicator">
+              Página <span id="current-page">1</span> de
+              <span id="total-pages">1</span>
+            </div>
+
+            <select class="page-size-select" id="page-size">
+              <option value="12">12 por página</option>
+              <option value="24">24 por página</option>
+              <option value="36">36 por página</option>
+              <option value="48">48 por página</option>
+            </select>
+
+            <button id="next-page" class="btn btn-pagination">
+              Próxima <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -304,15 +476,213 @@
       </div>
     </section>
 
-    <!-- Modal -->
-    <div class="modal" id="room-modal">
-      <div class="modal-content">
+    <!-- Modal de Detalhes Aprimorado -->
+    <div class="modal" id="hack-details-modal">
+      <div class="modal-container">
         <div class="modal-header">
-          <h2 id="modal-title">Pokémon Radical Red</h2>
+          <div class="modal-title-container">
+            <h2 id="modal-title">Pokémon Radical Red</h2>
+            <div class="modal-subtitle">
+              <span class="hack-version">v3.1</span>
+              <span class="hack-gen">Base: FireRed</span>
+              <span class="hack-status completed">Completo</span>
+            </div>
+          </div>
           <button class="modal-close" id="modal-close">&times;</button>
         </div>
-        <div class="modal-body" id="modal-body">
-          <!-- Conteúdo será inserido via JavaScript -->
+
+        <div class="modal-body">
+          <div class="modal-sidebar">
+            <div class="hack-cover">
+              <img
+                id="modal-cover"
+                src="https://via.placeholder.com/300x200"
+                alt="Capa do Hack"
+              />
+              <div class="hack-rating">
+                <div class="stars" style="--rating: 4.5"></div>
+                <span class="rating-value">4.5/5</span>
+                <span class="rating-count">(128 avaliações)</span>
+              </div>
+            </div>
+
+            <div class="hack-meta">
+              <div class="meta-item">
+                <i class="fas fa-user"></i>
+                <span
+                  >Criador: <strong id="hack-creator">Soupercell</strong></span
+                >
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span
+                  >Lançamento:
+                  <strong id="hack-release">2022-10-15</strong></span
+                >
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-sync-alt"></i>
+                <span
+                  >Atualizado:
+                  <strong id="hack-updated">2023-04-20</strong></span
+                >
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-code-branch"></i>
+                <span>Versão: <strong id="hack-version">3.1</strong></span>
+              </div>
+            </div>
+
+            <div class="hack-features">
+              <h4>Principais Recursos</h4>
+              <ul class="features-list" id="hack-features">
+                <!-- Preenchido via JS -->
+              </ul>
+            </div>
+
+            <div class="hack-tags">
+              <h4>Tags</h4>
+              <div class="tags-container" id="hack-tags">
+                <!-- Preenchido via JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-content">
+            <div class="tab-container">
+              <div class="tab-nav">
+                <button class="tab-btn active" data-tab="overview">
+                  <i class="fas fa-info-circle"></i> Visão Geral
+                </button>
+                <button class="tab-btn" data-tab="features">
+                  <i class="fas fa-star"></i> Recursos
+                </button>
+                <button class="tab-btn" data-tab="screenshots">
+                  <i class="fas fa-image"></i> Screenshots
+                </button>
+                <button class="tab-btn" data-tab="updates">
+                  <i class="fas fa-history"></i> Atualizações
+                </button>
+                <button class="tab-btn" data-tab="community">
+                  <i class="fas fa-users"></i> Comunidade
+                </button>
+              </div>
+
+              <div class="tab-content active" id="overview-tab">
+                <h3>Sobre este Hack</h3>
+                <div class="hack-description" id="hack-description">
+                  <!-- Preenchido via JS -->
+                </div>
+
+                <div class="hack-stats">
+                  <div class="stat-card">
+                    <div class="stat-value">8.9</div>
+                    <div class="stat-label">Qualidade</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">4/5</div>
+                    <div class="stat-label">Dificuldade</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">35-50</div>
+                    <div class="stat-label">Horas de Jogo</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">9.1</div>
+                    <div class="stat-label">Originalidade</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-content" id="features-tab">
+                <h3>Recursos Detalhados</h3>
+                <div class="feature-categories">
+                  <div class="feature-category">
+                    <h4><i class="fas fa-bolt"></i> Batalhas</h4>
+                    <ul class="feature-list">
+                      <!-- Preenchido via JS -->
+                    </ul>
+                  </div>
+                  <div class="feature-category">
+                    <h4><i class="fas fa-map"></i> Mundo do Jogo</h4>
+                    <ul class="feature-list">
+                      <!-- Preenchido via JS -->
+                    </ul>
+                  </div>
+                  <div class="feature-category">
+                    <h4><i class="fas fa-dragon"></i> Pokémon</h4>
+                    <ul class="feature-list">
+                      <!-- Preenchido via JS -->
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-content" id="screenshots-tab">
+                <h3>Imagens do Jogo</h3>
+                <div class="screenshots-gallery" id="screenshots-gallery">
+                  <!-- Preenchido via JS -->
+                </div>
+              </div>
+
+              <div class="tab-content" id="updates-tab">
+                <h3>Histórico de Atualizações</h3>
+                <div class="updates-timeline" id="updates-timeline">
+                  <!-- Preenchido via JS -->
+                </div>
+              </div>
+
+              <div class="tab-content" id="community-tab">
+                <h3>Comunidade</h3>
+                <div class="community-content">
+                  <div class="community-links">
+                    <h4>Links Oficiais</h4>
+                    <a href="#" class="community-link">
+                      <i class="fab fa-discord"></i> Discord do Criador
+                    </a>
+                    <a href="#" class="community-link">
+                      <i class="fab fa-github"></i> PokeCommunity Thread
+                    </a>
+                    <a href="#" class="community-link">
+                      <i class="fas fa-globe"></i> Site Oficial
+                    </a>
+                  </div>
+
+                  <div class="community-activity">
+                    <h4>Atividade Recente</h4>
+                    <div class="activity-item">
+                      <div class="activity-icon">
+                        <i class="fas fa-comment"></i>
+                      </div>
+                      <div class="activity-content">
+                        <strong>Novo comentário</strong> por User123 na versão
+                        3.1
+                      </div>
+                      <div class="activity-time">2 dias atrás</div>
+                    </div>
+                    <!-- Mais itens de atividade -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline" id="modal-prev-hack">
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          <div class="hack-actions">
+            <button class="btn btn-icon" title="Compartilhar">
+              <i class="fas fa-share-alt"></i>
+            </button>
+            <button class="btn btn-icon" title="Reportar">
+              <i class="fas fa-flag"></i>
+            </button>
+          </div>
+          <button class="btn btn-outline" id="modal-next-hack">
+            Próximo <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </div>
     </div>
