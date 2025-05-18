@@ -1,0 +1,1502 @@
+/* ==================== */
+/* VARIÁVEIS E BASE */
+/* ==================== */
+:root {
+  --hackrooms-bg: #f8f9fa;
+  --hackrooms-card-bg: #ffffff;
+  --hackrooms-primary: #4361ee;
+  --hackrooms-secondary: #3a0ca3;
+  --hackrooms-accent: #f72585;
+  --hackrooms-dark: #2b2d42;
+  --hackrooms-gray: #6c757d;
+  --hackrooms-gray-light: #e9ecef;
+  --hackrooms-gray-dark: #495057;
+  --hackrooms-border-radius: 12px;
+  --hackrooms-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --hackrooms-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --hackrooms-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ==================== */
+/* ESTRUTURA PRINCIPAL */
+/* ==================== */
+.hack-rooms {
+  background-color: var(--hackrooms-bg);
+  position: relative;
+  padding: 4rem 0;
+  overflow: hidden;
+}
+
+.hack-rooms::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), transparent);
+  z-index: 1;
+}
+
+/* ==================== */
+/* CABEÇALHO DA SEÇÃO */
+/* ==================== */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.hacks-counter {
+  background: rgba(67, 97, 238, 0.1);
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 700;
+  color: var(--hackrooms-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  box-shadow: var(--hackrooms-shadow);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(67, 97, 238, 0.2);
+  transition: var(--hackrooms-transition);
+}
+
+.hacks-counter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(67, 97, 238, 0.15);
+}
+
+.hacks-counter i {
+  font-size: 1rem;
+  color: var(--hackrooms-primary);
+}
+
+/* ==================== */
+/* SISTEMA DE BUSCA */
+/* ==================== */
+.search-filter-system {
+  margin-bottom: 3rem;
+}
+
+.advanced-search {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: min(100%, 500px);
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  padding-right: 4rem;
+  border-radius: var(--hackrooms-border-radius);
+  border: 2px solid var(--hackrooms-gray-light);
+  font-size: 1rem;
+  outline: none;
+  transition: var(--hackrooms-transition);
+  box-shadow: var(--hackrooms-shadow);
+  background-color: white;
+  font-weight: 500;
+}
+
+.search-box input:focus {
+  border-color: var(--hackrooms-primary);
+  box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+}
+
+.search-controls {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.search-btn,
+.clear-btn {
+  background: none;
+  border: none;
+  color: var(--hackrooms-gray);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: var(--hackrooms-transition);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.search-btn:hover,
+.clear-btn:hover {
+  background-color: rgba(67, 97, 238, 0.1);
+  color: var(--hackrooms-primary);
+  transform: scale(1.1);
+}
+
+.clear-btn {
+  display: none;
+}
+
+.search-box input:not(:placeholder-shown) + .search-controls .clear-btn {
+  display: flex;
+}
+
+/* ==================== */
+/* SUGESTÕES DE BUSCA */
+/* ==================== */
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: var(--hackrooms-border-radius);
+  box-shadow: var(--hackrooms-shadow-lg);
+  z-index: 100;
+  max-height: min(400px, 60vh);
+  overflow-y: auto;
+  display: none;
+  border: 1px solid var(--hackrooms-gray-light);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.search-suggestions.show {
+  display: block;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: var(--hackrooms-transition);
+  border-bottom: 1px solid var(--hackrooms-gray-light);
+  gap: 1.25rem;
+}
+
+.suggestion-item:hover {
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.suggestion-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--hackrooms-gray-light);
+}
+
+.suggestion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.suggestion-title {
+  font-weight: 700;
+  color: var(--hackrooms-dark);
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-creator {
+  font-size: 0.85rem;
+  color: var(--hackrooms-gray);
+  margin-bottom: 0.5rem;
+}
+
+.suggestion-features {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.suggestion-feature {
+  background-color: var(--hackrooms-gray-light);
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+}
+
+.suggestion-feature:hover {
+  background-color: var(--hackrooms-primary);
+  color: white;
+}
+
+/* ==================== */
+/* FILTROS RÁPIDOS */
+/* ==================== */
+.quick-filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.quick-filter {
+  padding: 0.7rem 1.25rem;
+  background: var(--hackrooms-gray-light);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: var(--hackrooms-transition);
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  gap: 0.5rem;
+}
+
+.quick-filter:hover {
+  background: rgba(67, 97, 238, 0.2);
+  color: var(--hackrooms-primary);
+  transform: translateY(-2px);
+}
+
+.quick-filter.active {
+  background: var(--hackrooms-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.quick-filter i {
+  font-size: 1rem;
+}
+
+.btn-toggle-filters {
+  background-color: #1a1a2e;
+}
+
+/* ==================== */
+/* FILTROS AVANÇADOS */
+/* ==================== */
+.advanced-filters-container {
+  background: white;
+  border-radius: var(--hackrooms-border-radius);
+  box-shadow: var(--hackrooms-shadow-lg);
+  margin: 2rem 0;
+  overflow: hidden;
+  border: 1px solid var(--hackrooms-gray-light);
+  transition: var(--hackrooms-transition);
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    var(--hackrooms-primary),
+    var(--hackrooms-secondary)
+  );
+  color: white;
+}
+
+.filter-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-clear {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 0.6rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-clear:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.filter-body {
+  padding: 1.5rem;
+}
+
+.filter-group {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--hackrooms-gray-light);
+  padding-bottom: 1.5rem;
+}
+
+.filter-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-title h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--hackrooms-dark);
+  font-weight: 700;
+}
+
+.filter-title i {
+  color: var(--hackrooms-primary);
+  font-size: 1.2rem;
+}
+
+/* Chips de Filtro */
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.1rem;
+  background: var(--hackrooms-gray-light);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+}
+
+.filter-chip img {
+  width: 22px;
+  height: 22px;
+  transition: var(--hackrooms-transition);
+}
+
+.filter-chip i {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: var(--hackrooms-transition);
+  font-size: 0.9rem;
+}
+
+.filter-chip.active {
+  background: var(--hackrooms-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.filter-chip.active i {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.filter-chip:hover:not(.active) {
+  background: rgba(67, 97, 238, 0.1);
+  color: var(--hackrooms-primary);
+}
+
+/* Cards de Filtro */
+.filter-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.filter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0.75rem;
+  background: var(--hackrooms-gray-light);
+  border: 1px solid var(--hackrooms-gray-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--hackrooms-transition);
+  text-align: center;
+  min-height: 100px;
+}
+
+.filter-card i {
+  font-size: 1.8rem;
+  margin-bottom: 0.75rem;
+  color: var(--hackrooms-primary);
+  transition: var(--hackrooms-transition);
+}
+
+.filter-card span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+}
+
+.filter-card:hover,
+.filter-card.active {
+  background: var(--hackrooms-primary);
+  color: white;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+  border-color: var(--hackrooms-primary);
+}
+
+.filter-card:hover i,
+.filter-card.active i {
+  color: white;
+}
+
+.filter-card:hover span,
+.filter-card.active span {
+  color: white;
+}
+
+/* Switches de Filtro */
+.filter-switches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+.switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.switch-label {
+  font-size: 0.95rem;
+  color: var(--hackrooms-dark);
+  font-weight: 500;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: relative;
+  cursor: pointer;
+  width: 52px;
+  height: 28px;
+  background-color: var(--hackrooms-gray-light);
+  transition: 0.4s;
+  border-radius: 34px;
+  flex-shrink: 0;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--hackrooms-primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* Seletor Moderno */
+.sort-options {
+  position: relative;
+  max-width: 300px;
+}
+
+.modern-select {
+  appearance: none;
+  width: 100%;
+  padding: 0.9rem 1.25rem;
+  border: 1px solid var(--hackrooms-gray-light);
+  border-radius: var(--hackrooms-border-radius);
+  background-color: white;
+  font-size: 0.95rem;
+  color: var(--hackrooms-dark);
+  cursor: pointer;
+  box-shadow: var(--hackrooms-shadow);
+  transition: var(--hackrooms-transition);
+  font-weight: 500;
+}
+
+.modern-select:focus {
+  outline: none;
+  border-color: var(--hackrooms-primary);
+  box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--hackrooms-gray);
+}
+
+/* Rodapé dos Filtros */
+.filter-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--hackrooms-gray-light);
+  border-top: 1px solid var(--hackrooms-gray-light);
+}
+
+.btn-apply {
+  background: var(--hackrooms-primary);
+  color: white;
+  padding: 0.8rem 1.75rem;
+  border-radius: 50px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: var(--hackrooms-transition);
+  font-size: 0.95rem;
+}
+
+.btn-apply:hover {
+  background: var(--hackrooms-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.filter-count {
+  font-size: 0.9rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 500;
+}
+
+.filter-count.highlight {
+  color: var(--hackrooms-primary);
+  font-weight: 700;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ==================== */
+/* OPÇÕES DE VISUALIZAÇÃO */
+/* ==================== */
+.view-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--hackrooms-gray-light);
+  padding: 0.5rem;
+  border-radius: var(--hackrooms-border-radius);
+}
+
+.view-btn {
+  padding: 0.7rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: var(--hackrooms-transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--hackrooms-gray-dark);
+}
+
+.view-btn.active {
+  background: var(--hackrooms-primary);
+  color: white;
+  box-shadow: var(--hackrooms-shadow);
+}
+
+.view-btn i {
+  font-size: 1rem;
+}
+
+.results-info {
+  font-size: 0.95rem;
+  color: var(--hackrooms-gray);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==================== */
+/* VISUALIZAÇÃO DOS HACKS */
+/* ==================== */
+.hacks-display {
+  position: relative;
+  min-height: 400px;
+}
+
+.hacks-grid,
+.hacks-list,
+.hacks-cards {
+  display: none;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.hacks-grid.active,
+.hacks-list.active,
+.hacks-cards.active {
+  display: grid;
+}
+
+/* Grade de Hacks */
+.hacks-grid {
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+}
+
+.hack-card {
+  background-color: var(--hackrooms-card-bg);
+  border-radius: var(--hackrooms-border-radius);
+  overflow: hidden;
+  box-shadow: var(--hackrooms-shadow);
+  transition: var(--hackrooms-transition);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.hack-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--hackrooms-shadow-lg);
+}
+
+.hack-img {
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hack-img::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), transparent);
+  z-index: 1;
+}
+
+.hack-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+
+.hack-card:hover .hack-img img {
+  transform: scale(1.1);
+}
+
+.hack-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: var(--hackrooms-primary);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  z-index: 2;
+  box-shadow: var(--hackrooms-shadow);
+  transition: var(--hackrooms-transition);
+}
+
+.hack-badge.beta {
+  background-color: var(--hackrooms-accent);
+}
+
+.hack-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.hack-content {
+  padding: 1.75rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hack-title {
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+  color: var(--hackrooms-dark);
+  line-height: 1.4;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.hack-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background-color: var(--hackrooms-primary);
+  transition: width 0.3s ease;
+}
+
+.hack-card:hover .hack-title::after {
+  width: 80px;
+}
+
+.hack-creator {
+  color: var(--hackrooms-gray);
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.hack-creator a {
+  color: var(--hackrooms-secondary);
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+}
+
+.hack-creator a:hover {
+  color: var(--hackrooms-primary);
+  text-decoration: none;
+}
+
+.hack-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.feature-tag {
+  background-color: var(--hackrooms-gray-light);
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+  border: 1px solid var(--hackrooms-gray-light);
+}
+
+.feature-tag:hover {
+  background-color: var(--hackrooms-primary);
+  color: white;
+  transform: translateY(-2px);
+  border-color: transparent;
+  box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
+}
+
+.hack-desc {
+  margin-bottom: 1.75rem;
+  color: var(--hackrooms-gray);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  position: relative;
+}
+
+.hack-desc::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), white 80%);
+}
+
+.hack-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+}
+
+.hack-rating i {
+  color: var(--hackrooms-accent);
+}
+
+.hack-version {
+  background-color: rgba(58, 12, 163, 0.1);
+  color: var(--hackrooms-secondary);
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: var(--hackrooms-transition);
+}
+
+.hack-version:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(58, 12, 163, 0.15);
+}
+
+/* Efeito de brilho no hover */
+.hack-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--hackrooms-primary),
+    var(--hackrooms-secondary)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.hack-card:hover::before {
+  opacity: 1;
+}
+
+/* Visualização em Lista */
+.hacks-list {
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.hack-list-item {
+  background-color: var(--hackrooms-card-bg);
+  border-radius: var(--hackrooms-border-radius);
+  box-shadow: var(--hackrooms-shadow);
+  transition: var(--hackrooms-transition);
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  align-items: center;
+}
+
+.hack-list-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--hackrooms-shadow-lg);
+}
+
+.hack-list-img {
+  width: 120px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.hack-list-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.hack-list-item:hover .hack-list-img img {
+  transform: scale(1.05);
+}
+
+.hack-list-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.hack-list-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--hackrooms-dark);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hack-list-creator {
+  font-size: 0.9rem;
+  color: var(--hackrooms-gray);
+  margin-bottom: 0.75rem;
+}
+
+.hack-list-features {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hack-list-feature {
+  font-size: 0.8rem;
+  background-color: var(--hackrooms-gray-light);
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+}
+
+.hack-list-feature:hover {
+  background-color: var(--hackrooms-primary);
+  color: white;
+}
+
+.hack-list-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.hack-list-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+}
+
+.hack-list-rating i {
+  color: var(--hackrooms-accent);
+}
+
+.hack-list-version {
+  font-size: 0.8rem;
+  background-color: rgba(58, 12, 163, 0.1);
+  color: var(--hackrooms-secondary);
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-weight: 700;
+}
+
+/* Visualização em Cartões */
+.hacks-cards {
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.hack-card-horizontal {
+  background-color: var(--hackrooms-card-bg);
+  border-radius: var(--hackrooms-border-radius);
+  box-shadow: var(--hackrooms-shadow);
+  transition: var(--hackrooms-transition);
+  display: flex;
+  overflow: hidden;
+  height: 220px;
+}
+
+.hack-card-horizontal:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--hackrooms-shadow-lg);
+}
+
+.hack-card-img {
+  width: 35%;
+  min-width: 250px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hack-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+
+.hack-card-horizontal:hover .hack-card-img img {
+  transform: scale(1.05);
+}
+
+.hack-card-content {
+  flex: 1;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.hack-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.hack-card-title {
+  font-size: 1.4rem;
+  color: var(--hackrooms-dark);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.hack-card-badge {
+  background-color: var(--hackrooms-primary);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hack-card-badge.beta {
+  background-color: var(--hackrooms-accent);
+}
+
+.hack-card-creator {
+  color: var(--hackrooms-gray);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.hack-card-desc {
+  color: var(--hackrooms-gray-dark);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hack-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.hack-card-features {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hack-card-feature {
+  background-color: var(--hackrooms-gray-light);
+  padding: 0.4rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+  transition: var(--hackrooms-transition);
+}
+
+.hack-card-feature:hover {
+  background-color: var(--hackrooms-primary);
+  color: white;
+}
+
+.hack-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.hack-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--hackrooms-gray-dark);
+  font-weight: 600;
+}
+
+.hack-card-rating i {
+  color: var(--hackrooms-accent);
+}
+
+.hack-card-version {
+  font-size: 0.85rem;
+  background-color: rgba(58, 12, 163, 0.1);
+  color: var(--hackrooms-secondary);
+  padding: 0.4rem 0.9rem;
+  border-radius: 50px;
+  font-weight: 700;
+}
+
+/* ==================== */
+/* SEM RESULTADOS */
+/* ==================== */
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.no-results.active {
+  display: flex;
+  animation: fadeIn 0.5s ease;
+}
+
+.no-results img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  margin-bottom: 2rem;
+  opacity: 0.7;
+}
+
+.no-results h3 {
+  font-size: 1.8rem;
+  color: var(--hackrooms-dark);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.no-results p {
+  color: var(--hackrooms-gray);
+  max-width: 500px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+/* ==================== */
+/* PAGINAÇÃO */
+/* ==================== */
+.results-footer {
+  margin-top: 4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-pagination {
+  background: var(--hackrooms-primary);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: var(--hackrooms-transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background: var(--hackrooms-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-indicator {
+  font-weight: 600;
+  color: var(--hackrooms-primary);
+  min-width: 120px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.page-size-select {
+  padding: 0.7rem 1rem;
+  border-radius: var(--hackrooms-border-radius);
+  border: 1px solid var(--hackrooms-gray-light);
+  font-size: 0.95rem;
+  background-color: white;
+  cursor: pointer;
+  transition: var(--hackrooms-transition);
+  font-weight: 500;
+}
+
+.page-size-select:focus {
+  border-color: var(--hackrooms-primary);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+}
+
+/* ==================== */
+/* ANIMAÇÕES */
+/* ==================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ==================== */
+/* ACESSIBILIDADE */
+/* ==================== */
+button:focus,
+input:focus,
+select:focus,
+a:focus {
+  outline: 3px solid rgba(67, 97, 238, 0.5);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion) {
+  .hack-card,
+  .hack-list-item,
+  .hack-card-horizontal,
+  .btn-pagination,
+  .btn-apply,
+  .btn-clear,
+  .quick-filter,
+  .filter-chip,
+  .filter-card,
+  .view-btn,
+  .feature-tag,
+  .hack-badge,
+  .search-btn,
+  .clear-btn {
+    transition: none !important;
+  }
+
+  .logo-pulse,
+  .filter-count.highlight {
+    animation: none;
+  }
+}
+
+/* Modo escuro */
+@media (prefers-color-scheme: dark) {
+  .hack-rooms {
+    --hackrooms-bg: #1a1a2e;
+    --hackrooms-card-bg: #2b2d42;
+    --hackrooms-dark: #f8f9fa;
+    --hackrooms-gray: #adb5bd;
+    --hackrooms-gray-light: #343a40;
+    --hackrooms-gray-dark: #dee2e6;
+  }
+
+  .search-box input,
+  .modern-select,
+  .advanced-filters-container,
+  .search-suggestions {
+    background-color: #2b2d42;
+    border-color: #495057;
+    color: #f8f9fa;
+  }
+
+  .suggestion-item:hover {
+    background-color: rgba(67, 97, 238, 0.2);
+  }
+
+  .filter-header {
+    background: linear-gradient(135deg, #3a0ca3, #7209b7);
+  }
+
+  .hack-desc::after {
+    background: linear-gradient(to bottom, rgba(43, 45, 66, 0), #2b2d42 80%);
+  }
+}
+
+/* ==================== */
+/* RESPONSIVIDADE */
+/* ==================== */
+@media (max-width: 1200px) {
+  .hacks-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .filter-cards {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .filter-switches {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .hack-card-horizontal {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .hack-card-img {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .advanced-filters-container {
+    margin: 1.5rem 0;
+  }
+
+  .filter-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .btn-clear {
+    align-self: flex-end;
+  }
+
+  .filter-body {
+    padding: 1.25rem;
+  }
+
+  .filter-group {
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hacks-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .view-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .hack-list-item {
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+  }
+
+  .hack-list-img {
+    width: 100%;
+    height: 150px;
+  }
+
+  .hack-list-meta {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--hackrooms-gray-light);
+  }
+
+  .filter-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-switches {
+    grid-template-columns: 1fr;
+  }
+
+  .no-results h3 {
+    font-size: 1.5rem;
+  }
+
+  .no-results img {
+    width: 140px;
+    height: 140px;
+  }
+}
